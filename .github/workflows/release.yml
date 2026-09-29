@@ -27,6 +27,11 @@ permissions:
 env:
   MODELS_TAG: models-v1
   PYTHON: "3.11"
+  # One onnxruntime for both platforms. Pinned: onnxruntime-gpu newer than
+  # this is built for CUDA 13 (driver 580+), while the bundle carries CUDA 12
+  # (driver 525+). The unpinned first run built a Linux bundle whose GPU
+  # provider could never load; the CUDA library check caught it (2026-09-30).
+  ORT: "1.24.4"
   GH_TOKEN: ${{ github.token }}
   GH_REPO: ${{ github.repository }}
 
@@ -109,11 +114,11 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           python -m pip install -q --upgrade pip
-          python -m pip install -q -r requirements-deploy.txt pyinstaller onnxruntime-directml
+          python -m pip install -q -r requirements-deploy.txt pyinstaller "onnxruntime-directml==$ORT"
           # onnxruntime and onnxruntime-directml conflict; with both, the CPU
           # one wins and the build silently loses the GPU.
           python -m pip uninstall -y -q onnxruntime || true
-          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(p); sys.exit('DmlExecutionProvider' not in p)"
+          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(o.__version__, p); sys.exit('DmlExecutionProvider' not in p)"
 
       - name: Dependencies (Linux)
         if: matrix.platform == 'linux'
@@ -121,10 +126,10 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q libgl1 libegl1 libxrender1 libxext6 libx11-6
           python -m pip install -q --upgrade pip
-          python -m pip install -q -r requirements-deploy.txt pyinstaller onnxruntime-gpu \
+          python -m pip install -q -r requirements-deploy.txt pyinstaller "onnxruntime-gpu==$ORT" \
             "nvidia-cudnn-cu12>=9.5,<10" nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 \
             nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12
-          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(p); sys.exit('CUDAExecutionProvider' not in p)"
+          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(o.__version__, p); sys.exit('CUDAExecutionProvider' not in p)"
 
       - name: Build the worker
         run: python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec

@@ -9,7 +9,9 @@ cd "$(dirname "$0")"
 VENV="${VENV:-.venv}"
 [ -d "$VENV" ] || python3 -m venv "$VENV"
 "$VENV/bin/pip" -q install --upgrade pip
-"$VENV/bin/pip" -q install -r requirements-deploy.txt pyinstaller onnxruntime-gpu \
+# onnxruntime-gpu pinned: newer releases are built for CUDA 13 (driver 580+),
+# while the wheels below are CUDA 12 — the provider would never load.
+"$VENV/bin/pip" -q install -r requirements-deploy.txt pyinstaller "onnxruntime-gpu==1.24.4" \
     "nvidia-cudnn-cu12>=9.5,<10" nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 \
     nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12
 rm -rf build dist/dental9
