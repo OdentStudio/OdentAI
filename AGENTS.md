@@ -43,7 +43,7 @@
 
 ## Сборка и проверка
 
-Окружение — `.venv` (Python 3.12, `onnxruntime-directml`, **не** обычный
+Окружение — `.venv` (Python 3.11; сборка принимает 3.9–3.12; `onnxruntime-directml`, **не** обычный
 `onnxruntime`: при обоих побеждает CPU и сборка молча теряет GPU).
 
 ```bat
