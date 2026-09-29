@@ -1,0 +1,10 @@
+# Веса, сборки и окружение в репозиторий не кладём: сотни мегабайт, и они
+# воспроизводятся из чекпоинта скриптом scripts/export_onnx.py.
+models/
+dist/
+build/
+.venv/
+__pycache__/
+*.pyc
+build_windows.log
+_backup_*/
