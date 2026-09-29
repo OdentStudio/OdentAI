@@ -1,0 +1,170 @@
+# Builds the add-on for Windows and Ubuntu and publishes it as a GitHub release.
+#
+# Trigger: push a tag vX.Y.Z matching bl_info["version"] in the add-on, or run
+# it by hand (Actions -> Release -> Run workflow) with an existing tag.
+#
+# The weights are not in git (~490 MB): they live as assets of the release
+# named by MODELS_TAG and are checked against SHA256.txt before packing.
+#
+# The runners have no graphics card, so the smoke test runs on the CPU. The
+# Linux job also proves the CUDA provider's libraries all resolve inside the
+# bundle — the failure that once shipped a build which only worked on the
+# machine it was built on (2026-09-13).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build, e.g. v1.0.1"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  MODELS_TAG: models-v1
+  PYTHON: "3.11"
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.tag }}
+      - name: Tag matches the add-on version
+        run: |
+          V=$(python3 - <<'EOF'
+          import re
+          s = open("addon/dental9_addon/__init__.py", encoding="utf-8").read()
+          print(".".join(re.search(r'"version":\s*\((\d+),\s*(\d+),\s*(\d+)\)', s).groups()))
+          EOF
+          )
+          [ "$V" = "${{ steps.v.outputs.version }}" ] || {
+            echo "::error::tag ${{ steps.v.outputs.tag }} but bl_info version is $V"; exit 1; }
+      - name: Draft release
+        run: |
+          sed "s/{{VERSION}}/${{ steps.v.outputs.version }}/g" .github/release-notes.md > notes.md
+          if gh release view "${{ steps.v.outputs.tag }}" >/dev/null 2>&1; then
+            gh release edit "${{ steps.v.outputs.tag }}" --draft --notes-file notes.md
+          else
+            gh release create "${{ steps.v.outputs.tag }}" --draft --verify-tag \
+              --title "OdentAI Segment ${{ steps.v.outputs.version }}" --notes-file notes.md
+          fi
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: windows
+            exe: dist/dental9/dental9.exe
+          - os: ubuntu-22.04        # glibc 2.35: runs on Ubuntu 22.04 and newer
+            platform: linux
+            exe: dist/dental9/dental9
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      ZIP: OdentAI-${{ needs.prepare.outputs.version }}-${{ matrix.platform }}.zip
+    steps:
+      - name: Free disk space (Linux)
+        if: matrix.platform == 'linux'
+        # CUDA wheels, the bundle, the zip and its parts need ~15 GB at once.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON }}
+
+      - name: Weights
+        run: |
+          gh release download "$MODELS_TAG" -D models
+          # tr: the Windows runner checks text files out with CRLF.
+          grep '  models/' SHA256.txt | tr -d '\r' | sha256sum -c -
+
+      - name: Dependencies (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          python -m pip install -q --upgrade pip
+          python -m pip install -q -r requirements-deploy.txt pyinstaller onnxruntime-directml
+          # onnxruntime and onnxruntime-directml conflict; with both, the CPU
+          # one wins and the build silently loses the GPU.
+          python -m pip uninstall -y -q onnxruntime || true
+          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(p); sys.exit('DmlExecutionProvider' not in p)"
+
+      - name: Dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q libgl1 libegl1 libxrender1 libxext6 libx11-6
+          python -m pip install -q --upgrade pip
+          python -m pip install -q -r requirements-deploy.txt pyinstaller onnxruntime-gpu \
+            "nvidia-cudnn-cu12>=9.5,<10" nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 \
+            nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12
+          python -c "import onnxruntime as o, sys; p = o.get_available_providers(); print(p); sys.exit('CUDAExecutionProvider' not in p)"
+
+      - name: Build the worker
+        run: python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec
+
+      - name: CUDA libraries resolve inside the bundle (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          so=$(find dist/dental9 -name 'libonnxruntime_providers_cuda.so' | head -1)
+          [ -n "$so" ] || { echo "::error::no CUDA provider in the bundle"; exit 1; }
+          # libcuda.so.1 is the driver itself: it comes from the user's
+          # machine, never from the bundle, and the runner has none.
+          missing=$(LD_LIBRARY_PATH="$(dirname "$so"):dist/dental9/_internal" ldd "$so" \
+                    | grep 'not found' | grep -v 'libcuda.so' || true)
+          if [ -n "$missing" ]; then echo "::error::unresolved: $missing"; exit 1; fi
+          du -sh dist/dental9
+
+      - name: Smoke test (CPU, synthetic scan)
+        run: python scripts/smoke_test.py "${{ matrix.exe }}" models/dental9.onnx
+
+      - name: Pack
+        run: |
+          rm -rf build addon/dental9_addon/__pycache__
+          mkdir -p release
+          python scripts/pack_addon.py --model models/dental9.onnx \
+            --teeth-model models/teeth_fdi.onnx --out "release/$ZIP"
+          cd release
+          sha256sum "$ZIP" > "$ZIP.sha256"
+          # A release asset must be under 2 GiB. The Linux zip carries CUDA and
+          # cuDNN (~3 GB), so it goes up in parts; `cat` joins them back.
+          if [ "$(stat -c %s "$ZIP" 2>/dev/null || stat -f %z "$ZIP")" -gt 1900000000 ]; then
+            split -b 1900M --numeric-suffixes=1 -a 3 "$ZIP" "$ZIP."
+            rm "$ZIP"
+          fi
+          ls -la
+
+      - name: Upload to the release
+        run: gh release upload "${{ needs.prepare.outputs.tag }}" release/* --clobber
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh release edit "${{ needs.prepare.outputs.tag }}" --draft=false --latest

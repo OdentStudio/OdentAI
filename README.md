@@ -8,39 +8,95 @@ teeth with FDI numbers, implants, implant crowns and bridges.
 The internal package and executable are called `dental9`. Users never see
 that name; the brand is **OdentAI**.
 
-```
-dental9/          the pipeline: reading, inference, meshes, command line (-> dental9.exe)
-addon/            the Blender add-on (panel code; packing adds the binary and weights)
-scripts/          weight export, zip packing, accuracy evaluation, input-format test
-configs/          fallback dental9.json (preprocessing parameters from the nnU-Net plans)
-docs/             palette and viewport images
-models/           .onnx weights + .json next to them (not in git, see SHA256.txt)
-dental9.spec      PyInstaller build (onedir)
-build_windows.bat the whole Windows build: environment, exe, check, zip
-```
-
 For coding agents (Claude Code, Codex and the like): [AGENTS.md](AGENTS.md).
 
-## Quick start
+## Install
 
-Windows, by double-click (details in `ЧТО_ЗАПУСКАТЬ.txt`):
+Download the ready-built add-on from
+[**Releases**](https://github.com/OdentStudio/OdentAI/releases/latest) — the
+engine and the model weights are inside, nothing else to install:
 
-```bat
-build_windows.bat        :: -> dist\dental9_addon_windows.zip
+- **Windows 10 / 11:** `OdentAI-<version>-windows.zip`
+- **Ubuntu 22.04+:** `OdentAI-<version>-linux.zip`. It bundles CUDA and is
+  over GitHub's 2 GB file limit, so it comes in parts `.zip.001`, `.zip.002`, …
+  Download all of them and join:
+  `cat OdentAI-<version>-linux.zip.0* > OdentAI-<version>-linux.zip`
+
+Then in Blender: **Edit → Preferences → Add-ons → Install…** (Blender 4.2+:
+the **⌄** menu → **Install from Disk…**), pick the zip without unpacking it,
+and tick **OdentAI Segment**. The panel is in the 3D view under **N**, tab
+**OdentAI**. Press **Check system** once to see whether the graphics card is
+used. The release page has the full instructions and requirements.
+
+## Repository
+
+```
+dental9/            the pipeline: reading, inference, meshes, command line (-> dental9.exe)
+addon/              the Blender add-on (panel code; packing adds the binary and weights)
+scripts/            weight export, zip packing, smoke test, accuracy evaluation, input-format test
+configs/            fallback dental9.json (preprocessing parameters from the nnU-Net plans)
+docs/               palette and viewport images
+models/             .onnx weights + .json next to them (not in git, see below)
+dental9.spec        PyInstaller build (onedir)
+build_windows.bat   the whole local Windows build: environment, exe, check, zip
+build_linux.sh      the same for Linux (exe only)
+.github/workflows/  release.yml: builds both platforms on GitHub and publishes a release
 ```
 
-The same step by step, without the window that ends in `pause`:
+## Releasing a version
+
+Releases are built by GitHub Actions, not on a local machine:
+
+1. Raise `bl_info["version"]` and `VERSION_LABEL` in
+   `addon/dental9_addon/__init__.py`, commit.
+2. Tag and push: `git tag v1.0.2 && git push origin v1.0.2`.
+3. The **Release** workflow checks that the tag matches `bl_info`, downloads
+   the weights, builds the worker on `windows-2022` (DirectML) and
+   `ubuntu-22.04` (CUDA), verifies that every CUDA library resolves inside the
+   Linux bundle, runs `scripts/smoke_test.py` on each build (CPU, synthetic
+   scan: providers, bone preview, segmentation, crop), packs the zips and
+   publishes the release with the notes from `.github/release-notes.md`.
+
+A failed run can be repeated from Actions → Release → Run workflow, with the
+same tag.
+
+The weights are not in git. They are assets of the **`models-v1`** release,
+which the workflow downloads and checks against `SHA256.txt`. New weights: make
+a `models-v2` release with the four files (`dental9.onnx`, `dental9.json`,
+`teeth_fdi.onnx`, `teeth_fdi.json`), update `SHA256.txt` and `MODELS_TAG` in
+the workflow.
+
+## Building locally
+
+Needed on the machine: **Python 3.9–3.12** (python.org, tick "Add python.exe
+to PATH"), internet access (the build downloads ~200 MB of libraries on
+Windows, several GB of CUDA on Linux), ~3 GB of free disk. Run it from a
+local disk, not a USB stick or a network drive — the build writes thousands
+of small files. The graphics card and driver do not matter for building;
+CUDA need not be installed.
+
+Put the weights into `models/` (from the `models-v1` release) and check them:
+
+```powershell
+Get-FileHash models\dental9.onnx, models\teeth_fdi.onnx -Algorithm SHA256   # compare with SHA256.txt
+```
+```bash
+grep '  models/' SHA256.txt | sha256sum -c -
+```
+
+Windows, by double-click — `build_windows.bat` sets up `.venv`, builds the
+exe, runs the hardware check on it and packs `dist\dental9_addon_windows.zip`.
+If it fails, the last lines of `build_windows.log` are shown. The same step by
+step, without the window that ends in `pause`:
 
 ```bat
 .venv\Scripts\python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec
+.venv\Scripts\python scripts\smoke_test.py dist\dental9\dental9.exe models\dental9.onnx
 .venv\Scripts\python scripts\pack_addon.py --model models\dental9.onnx ^
     --teeth-model models\teeth_fdi.onnx --out dist\OdentAI.zip
 ```
 
 Linux: `bash build_linux.sh`, then `python3 scripts/pack_addon.py`.
-
-In Blender: Edit → Preferences → Add-ons → Install → pick the zip.
-The panel appears in the 3D view under the N key, **OdentAI** tab.
 
 ## Syncing the Windows build folder
 
@@ -351,9 +407,8 @@ alone" was off by a factor of two.
 ## Language
 
 Everything the user sees — the add-on UI, console output, tooltips, error
-messages — is in English: the add-on goes to clinics. Code comments and
-docstrings are in English too. The build notes for the Windows machine
-(`ЧТО_ЗАПУСКАТЬ.txt`) are in Russian.
+messages — is in English: the add-on goes to clinics. Code comments,
+docstrings and all documentation are in English too.
 
 ## What must not break
 
