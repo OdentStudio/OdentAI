@@ -14,7 +14,7 @@
 bl_info = {
     "name": "OdentAI Segment",
     "author": "Dr. Ilya Fomenko DMD, Dr. Essaid Issam Dakir DMD, Dr. Krasouski Dmitry DMD",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (3, 0, 0),
     "location": "3D View > Sidebar (N) > OdentAI",
     "description": "See more. Plan better. CBCT (DICOM) to teeth, jaws, canals, "
@@ -27,7 +27,7 @@ bl_info = {
 # and executable keep the name dental9 — nobody sees those.
 BRAND = "OdentAI Segment"
 BRAND_SHORT = "OdentAI"
-VERSION_LABEL = "1.0 Beta"
+VERSION_LABEL = "1.0.1 Beta"
 TAGLINE = "See more. Plan better."
 AUTHORS = ["Dr. Ilya Fomenko DMD", "Dr. Essaid Issam Dakir DMD", "Dr. Krasouski Dmitry DMD"]
 # One universe with ODent: the same community, the same link.
@@ -39,11 +39,13 @@ import os
 import queue
 import subprocess
 import sys
+import tempfile
 import threading
+import time
 
 import bpy
 from bpy.props import (BoolProperty, EnumProperty, FloatProperty, IntProperty,
-                       StringProperty)
+                       PointerProperty, StringProperty)
 from bpy.types import AddonPreferences, Operator, Panel, PropertyGroup
 
 # Order and ids must match the model. Change them only together with retraining.
@@ -460,6 +462,19 @@ class Dental9Props(PropertyGroup):
         description="Second pass after the main segmentation: every tooth as its "
                     "own object named by its FDI number, plus implants, implant "
                     "crowns and bridges. Adds about 20 seconds on a GPU")
+    use_crop: BoolProperty(
+        name="Only inside the box", default=False,
+        description="Segment only what is inside the crop box. A large field of "
+                    "view needs gigabytes of memory and many times longer; the "
+                    "jaws rarely fill more than a third of it")
+    crop_box: PointerProperty(
+        name="Crop box", type=bpy.types.Object,
+        description="Any object: the region is its bounding box. \"Bone preview\" "
+                    "creates one around the bone")
+    preview_obj: PointerProperty(
+        name="Preview", type=bpy.types.Object,
+        description="The quick bone surface the box is drawn on; the box is "
+                    "read in its coordinates")
 
 
 # The nine checkboxes are generated from the class list rather than written
@@ -608,7 +623,7 @@ class DENTAL9_OT_diagnose(Operator):
         # provider list, which is exactly what has to be sent if something is
         # wrong.
         print("[OdentAI] " + "=" * 46)
-        for k in ("platform", "onnxruntime", "gpu_names", "model", "gpu", "cpu"):
+        for k in ("platform", "onnxruntime", "gpus", "model", "gpu", "cpu"):
             if k in _DIAG:
                 print(f"[OdentAI] {k}: {_DIAG[k]}")
         for a in _DIAG.get("advice", []):
@@ -635,72 +650,39 @@ def _console(line: str) -> None:
         print(msg.encode("ascii", "replace").decode("ascii"))
 
 
-class DENTAL9_OT_segment(Operator):
-    bl_idname = "dental9.segment"
-    bl_label = "Segment"
-    bl_description = "Run the segmentation and load the surfaces into the scene"
-    bl_options = {"REGISTER"}
+def _log_path() -> str:
+    """Where the full output of the last run is kept.
+
+    A file, not only the console: on someone else's machine the system
+    console is closed, and by the time a run fails its output is gone. The
+    file survives, and it is what gets sent to the developer. Overwritten by
+    each run — it is the last run that matters.
+    """
+    d = os.path.join(tempfile.gettempdir(), "OdentAI")
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, "last_run.log")
+
+
+class _WorkerRun:
+    """Runs the worker executable without freezing Blender: the output is
+    read on a thread, echoed to the console, written to the log file and
+    shown in the status bar; the subclass finishes the job in _on_done."""
 
     _timer = None
     _proc = None
     _q = None
-    _outdir = ""
-    _tmp_out = False
-    _selected = []
-    _teeth = False
+    _log = None
+    _error = ""
 
-    def _start(self, context):
-        p = context.scene.dental9
-        pr = _prefs(context)
-        exe = _exe()
-        _ensure_executable(exe)
-        if not os.path.isfile(exe):
-            self.report({"ERROR"}, f"executable missing: {exe}")
-            return False
-        src = bpy.path.abspath(p.input_path)
-        if not src or not os.path.exists(src):
-            self.report({"ERROR"}, "no scan selected")
-            return False
-        model = bpy.path.abspath(pr.model_path)
-        if not model or not os.path.isfile(model):
-            self.report({"ERROR"}, "model file not found, set it in the add-on "
-                                   "preferences")
-            return False
-
-        self._selected = [k for k, _l, _h, _r, _a, _o in CLASSES if getattr(p, k)]
-        if not self._selected:
-            self.report({"ERROR"}, "no classes selected")
-            return False
-
-        # Without "keep" the files are only a way to get the meshes into the
-        # scene: they go to a temporary folder that is removed after loading.
-        if p.keep_files:
-            self._outdir = bpy.path.abspath(p.out_dir) or os.path.join(
-                os.path.dirname(src), "dental9_out")
-            os.makedirs(self._outdir, exist_ok=True)
-            self._tmp_out = False
-        else:
-            import tempfile
-            self._outdir = tempfile.mkdtemp(prefix="odentai_")
-            self._tmp_out = True
-
-        # The second canal pass is always on and has no switch: it fires only
-        # when the canal comes out broken, and on a healthy scan it costs
-        # nothing. A switch would only offer a way to make things worse.
-        cmd = [exe, src, "-o", self._outdir, "-m", model,
-               "--device", pr.device, "--taubin", str(p.smooth),
-               "-c", *self._selected]
-        if p.decimate > 0:
-            cmd += ["--decimate", f"{p.decimate:.2f}"]
-        self._teeth = bool(p.separate_teeth)
-        if self._teeth:
-            tm = _teeth_model(pr)
-            if not tm or not os.path.isfile(tm):
-                self.report({"ERROR"}, "teeth model (teeth_fdi.onnx) not found, set "
-                                       "it in the add-on preferences")
-                return False
-            cmd += ["--separate-teeth", "--teeth-model", tm]
-
+    def _launch(self, context, cmd) -> set:
+        self._error = ""
+        try:
+            self._log = open(_log_path(), "w", encoding="utf-8", errors="replace")
+            self._log.write(f"{BRAND} {VERSION_LABEL}, Blender {bpy.app.version_string}, "
+                            f"{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self._log.write("command: " + subprocess.list2cmdline(cmd) + "\n\n")
+        except OSError:
+            self._log = None                # no log is no reason to not run
         # CREATE_NO_WINDOW: without it a black console window pops up over
         # Blender on every run under Windows.
         flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
@@ -710,7 +692,10 @@ class DENTAL9_OT_segment(Operator):
             errors="replace", creationflags=flags)
         self._q = queue.Queue()
         threading.Thread(target=self._reader, daemon=True).start()
-        return True
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.2, window=context.window)
+        wm.modal_handler_add(self)
+        return {"RUNNING_MODAL"}
 
     def _reader(self):
         for line in self._proc.stdout:
@@ -729,22 +714,180 @@ class DENTAL9_OT_segment(Operator):
             if line is None:
                 done = True
                 break
-            if line:
-                _console(line)
+            if not line:
+                continue
+            _console(line)
+            if self._log:
+                self._log.write(line + "\n")
+            # The details after the error are for the log, not the status bar.
+            if line.startswith("ERROR:") and not self._error:
+                self._error = line[6:].strip()
+            if not self._error:
                 context.workspace.status_text_set(line[:120])
         if not done:
             return {"RUNNING_MODAL"}
 
-        self._finish(context)
+        if self._timer:
+            context.window_manager.event_timer_remove(self._timer)
+            self._timer = None
+        context.workspace.status_text_set(None)
         rc = self._proc.wait()
+        if self._log:
+            self._log.write(f"\nexit code {rc}\n")
+            self._log.close()
+            self._log = None
         if rc != 0:
-            self.report({"ERROR"}, "segmentation failed, see the console")
+            msg = self._error or "the worker stopped with no message"
+            print(f"[OdentAI] full log: {_log_path()}")
+            self.report({"ERROR"}, f"{msg[:300]} — log: {_log_path()}")
+        return self._on_done(context, rc)
+
+    def _on_done(self, context, rc: int) -> set:
+        raise NotImplementedError
+
+
+def _crop_args(p) -> list:
+    """The crop box as --crop arguments, in the scan's own frame.
+
+    The frame is the preview's: the preview mesh arrives in patient
+    coordinates, so its local space IS the scan frame, and reading the box
+    there keeps working if the user moved the preview and the box together
+    (the two are not parented, so moving one alone does shift the crop).
+    Without a preview the world frame is used — the segmented meshes land in
+    it unmoved, so a box drawn around an earlier result works too. A rotated
+    box is taken by its enclosing axis-aligned box.
+    """
+    box = p.crop_box
+    if not (p.use_crop and box):
+        return []
+    from mathutils import Matrix, Vector
+    # matrix_world lags behind a location or size just typed into the panel
+    # until the depsgraph runs; without this the previous box would be sent.
+    bpy.context.view_layer.update()
+    to_scan = (p.preview_obj.matrix_world.inverted() if p.preview_obj
+               else Matrix.Identity(4)) @ box.matrix_world
+    pts = [to_scan @ Vector(c) for c in box.bound_box]
+    lo = [min(v[i] for v in pts) for i in range(3)]
+    hi = [max(v[i] for v in pts) for i in range(3)]
+    return ["--crop", *(f"{v:.2f}" for v in lo + hi)]
+
+
+def _remove_object(obj) -> None:
+    if obj is None:
+        return
+    data = obj.data
+    bpy.data.objects.remove(obj, do_unlink=True)
+    if data is not None and data.users == 0 and isinstance(data, bpy.types.Mesh):
+        bpy.data.meshes.remove(data)
+
+
+def _make_box(name: str, lo, hi):
+    """The crop box: a unit cube's eight corners spanning lo..hi, never rendered.
+
+    Corners only, no edges or faces, so Blender itself draws nothing: the box
+    is drawn by the add-on's overlay and edited through its handles (see
+    DENTAL9_GGT_crop_box). A plain wireframe object was hard to grab — the
+    click lands on the bone behind it — and S/G along an axis moves both walls
+    at once. The object still holds the box, so the numeric fields in the
+    panel keep working. Scaled and moved as an object, so it stays a true box.
+    """
+    verts = [(x, y, z) for x in (-0.5, 0.5) for y in (-0.5, 0.5) for z in (-0.5, 0.5)]
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], [])
+    obj = bpy.data.objects.new(name, me)
+    obj.location = [(a + b) / 2 for a, b in zip(lo, hi)]
+    obj.scale = [max(b - a, 1.0) for a, b in zip(lo, hi)]
+    obj.hide_render = True
+    obj.hide_select = True
+    # Deliberately not parented to the preview: a child draws Blender's dashed
+    # relationship line to its parent's origin, right across the box.
+    return obj
+
+
+class DENTAL9_OT_segment(_WorkerRun, Operator):
+    bl_idname = "dental9.segment"
+    bl_label = "Segment"
+    bl_description = "Run the segmentation and load the surfaces into the scene"
+    bl_options = {"REGISTER"}
+
+    _outdir = ""
+    _tmp_out = False
+    _selected = []
+    _teeth = False
+
+    def _start(self, context):
+        """Checks and the command line; None when something is missing."""
+        p = context.scene.dental9
+        pr = _prefs(context)
+        exe = _exe()
+        _ensure_executable(exe)
+        if not os.path.isfile(exe):
+            self.report({"ERROR"}, f"executable missing: {exe}")
+            return None
+        src = bpy.path.abspath(p.input_path)
+        if not src or not os.path.exists(src):
+            self.report({"ERROR"}, "no scan selected")
+            return None
+        model = bpy.path.abspath(pr.model_path)
+        if not model or not os.path.isfile(model):
+            self.report({"ERROR"}, "model file not found, set it in the add-on "
+                                   "preferences")
+            return None
+
+        self._selected = [k for k, _l, _h, _r, _a, _o in CLASSES if getattr(p, k)]
+        if not self._selected:
+            self.report({"ERROR"}, "no classes selected")
+            return None
+
+        # Without "keep" the files are only a way to get the meshes into the
+        # scene: they go to a temporary folder that is removed after loading.
+        if p.keep_files:
+            self._outdir = bpy.path.abspath(p.out_dir) or os.path.join(
+                os.path.dirname(src), "dental9_out")
+            os.makedirs(self._outdir, exist_ok=True)
+            self._tmp_out = False
+        else:
+            self._outdir = tempfile.mkdtemp(prefix="odentai_")
+            self._tmp_out = True
+
+        # The second canal pass is always on and has no switch: it fires only
+        # when the canal comes out broken, and on a healthy scan it costs
+        # nothing. A switch would only offer a way to make things worse.
+        cmd = [exe, src, "-o", self._outdir, "-m", model,
+               "--device", pr.device, "--taubin", str(p.smooth),
+               "-c", *self._selected]
+        if p.decimate > 0:
+            cmd += ["--decimate", f"{p.decimate:.2f}"]
+        self._teeth = bool(p.separate_teeth)
+        if self._teeth:
+            tm = _teeth_model(pr)
+            if not tm or not os.path.isfile(tm):
+                self.report({"ERROR"}, "teeth model (teeth_fdi.onnx) not found, set "
+                                       "it in the add-on preferences")
+                return None
+            cmd += ["--separate-teeth", "--teeth-model", tm]
+        if p.use_crop:
+            if not p.crop_box:
+                self.report({"ERROR"}, "\"Only inside the box\" is on, but there is "
+                                       "no box: press \"Bone preview\" first")
+                return None
+            cmd += _crop_args(p)
+        return cmd
+
+    def _on_done(self, context, rc):
+        if rc != 0:
             self._drop_tmp()
             return {"CANCELLED"}
         try:
             self._load(context)
         finally:
             self._drop_tmp()
+        # The preview and the box have done their job; they would only sit in
+        # the result's way. The eye button in the panel brings them back.
+        p = context.scene.dental9
+        for o in (p.preview_obj, p.crop_box):
+            if o is not None:
+                o.hide_set(True)
         return {"FINISHED"}
 
     def _drop_tmp(self):
@@ -753,12 +896,6 @@ class DENTAL9_OT_segment(Operator):
             import shutil
             shutil.rmtree(self._outdir, ignore_errors=True)
             self._outdir = ""
-
-    def _finish(self, context):
-        if self._timer:
-            context.window_manager.event_timer_remove(self._timer)
-            self._timer = None
-        context.workspace.status_text_set(None)
 
     def _load(self, context):
         report = {}
@@ -873,12 +1010,447 @@ class DENTAL9_OT_segment(Operator):
         return n
 
     def execute(self, context):
-        if not self._start(context):
+        cmd = self._start(context)
+        if not cmd:
+            self._drop_tmp()
             return {"CANCELLED"}
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.2, window=context.window)
-        wm.modal_handler_add(self)
-        return {"RUNNING_MODAL"}
+        return self._launch(context, cmd)
+
+
+PREVIEW_NAME = f"{BRAND_SHORT} Bone Preview"
+BOX_NAME = f"{BRAND_SHORT} Crop Box"
+# Air around the bone when the box is first drawn: enough not to clip a
+# crown or the chin, small next to any field of view.
+BOX_MARGIN_MM = 3.0
+
+
+class DENTAL9_OT_preview(_WorkerRun, Operator):
+    """A quick bone surface by threshold, no network, and a crop box around it"""
+
+    bl_idname = "dental9.preview"
+    bl_label = "Bone preview"
+    bl_description = ("Quick bone surface without the network (seconds), with a box "
+                      "around it. Shrink the box to the area of interest and only "
+                      "that is segmented")
+    bl_options = {"REGISTER"}
+
+    _outdir = ""
+    _src = ""
+
+    def execute(self, context):
+        p = context.scene.dental9
+        exe = _exe()
+        _ensure_executable(exe)
+        if not os.path.isfile(exe):
+            self.report({"ERROR"}, f"executable missing: {exe}")
+            return {"CANCELLED"}
+        self._src = bpy.path.abspath(p.input_path)
+        if not self._src or not os.path.exists(self._src):
+            self.report({"ERROR"}, "no scan selected")
+            return {"CANCELLED"}
+        self._outdir = tempfile.mkdtemp(prefix="odentai_preview_")
+        return self._launch(context, [exe, self._src, "-o", self._outdir, "--preview"])
+
+    def _on_done(self, context, rc):
+        import shutil
+        try:
+            if rc != 0:
+                return {"CANCELLED"}
+            return self._load(context)
+        finally:
+            shutil.rmtree(self._outdir, ignore_errors=True)
+
+    def _load(self, context):
+        p = context.scene.dental9
+        stl = os.path.join(self._outdir, "preview.stl")
+        if not os.path.isfile(stl) or os.path.getsize(stl) < 100:
+            self.report({"ERROR"}, "the preview came out empty — no bone found")
+            return {"CANCELLED"}
+        # One preview and one box per scene: a new preview replaces both, the
+        # old box belongs to the old scan.
+        _remove_object(p.crop_box)
+        _remove_object(p.preview_obj)
+        for name in (BOX_NAME, PREVIEW_NAME):
+            _remove_object(bpy.data.objects.get(name))
+
+        objs = _import_stl(stl)
+        if not objs:
+            self.report({"ERROR"}, "could not import the preview")
+            return {"CANCELLED"}
+        prev = objs[0]
+        prev.name = PREVIEW_NAME
+        prev.data.materials.clear()
+        prev.data.materials.append(_material(f"{BRAND_SHORT}_preview", "#B8B2A6", 0.6, 0.55))
+        prev.hide_select = True          # clicks go to the handles, not the bone
+        prev["odentai_source"] = self._src
+
+        p.preview_obj, p.use_crop = prev, True
+        box = _fit_box(p)
+        _frame_box(context, box)
+        self.report({"INFO"}, "bone preview ready: drag the arrows to shrink the "
+                              "box, the ring in the middle moves it; then Segment")
+        return {"FINISHED"}
+
+
+def _fit_box(p):
+    """A new crop box around the preview bone, replacing any old one."""
+    prev = p.preview_obj
+    _remove_object(p.crop_box)
+    _remove_object(bpy.data.objects.get(BOX_NAME))
+    lo = [min(v.co[i] for v in prev.data.vertices) - BOX_MARGIN_MM for i in range(3)]
+    hi = [max(v.co[i] for v in prev.data.vertices) + BOX_MARGIN_MM for i in range(3)]
+    box = _make_box(BOX_NAME, lo, hi)
+    for c in prev.users_collection:
+        c.objects.link(box)
+    # lo/hi are in the preview's own space; place the box wherever the preview
+    # is now. Setting the world matrix also makes it current before the next
+    # depsgraph update (the overlay and the handles read it at once).
+    box.matrix_world = prev.matrix_world @ box.matrix_basis
+    p.crop_box = box
+    return box
+
+
+def _frame_box(context, box) -> None:
+    """Bring the box into view; purely a courtesy, so never an error."""
+    try:
+        from mathutils import Vector
+        m = box.matrix_world
+        centre = m @ Vector((0.0, 0.0, 0.0))
+        size = max(m.to_scale())
+        for area in context.screen.areas:
+            if area.type == "VIEW_3D":
+                rv3d = area.spaces.active.region_3d
+                rv3d.view_location = centre
+                rv3d.view_distance = size * 1.8
+                break
+    except Exception:                                       # noqa: BLE001
+        pass
+
+
+class DENTAL9_OT_remove_preview(Operator):
+    bl_idname = "dental9.remove_preview"
+    bl_label = "Remove preview and box"
+    bl_description = "Delete the bone preview and the crop box; segment the whole scan"
+
+    def execute(self, context):
+        p = context.scene.dental9
+        _remove_object(p.crop_box)
+        _remove_object(p.preview_obj)
+        p.use_crop = False
+        return {"FINISHED"}
+
+
+class DENTAL9_OT_fit_box(Operator):
+    bl_idname = "dental9.fit_box"
+    bl_label = "Fit box to bone"
+    bl_description = "Put the box back around the whole preview bone"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.dental9.preview_obj is not None
+
+    def execute(self, context):
+        _fit_box(context.scene.dental9)
+        return {"FINISHED"}
+
+
+class DENTAL9_OT_toggle_region(Operator):
+    bl_idname = "dental9.toggle_region"
+    bl_label = "Show or hide the preview and the box"
+    bl_description = ("Show or hide the bone preview and the crop box. Hidden, the "
+                      "box still applies when \"Only inside the box\" is on")
+
+    def execute(self, context):
+        p = context.scene.dental9
+        show = not _region_visible(p)
+        for o in (p.preview_obj, p.crop_box):
+            if o is not None:
+                o.hide_set(not show)
+        return {"FINISHED"}
+
+
+def _region_visible(p) -> bool:
+    box = p.crop_box
+    try:
+        return box is not None and box.visible_get()
+    except RuntimeError:                  # not in the current view layer
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Crop box handles and overlay.
+#
+# Handles are Blender gizmos, the same machinery as the arrows on a light or
+# a camera: they highlight under the cursor, keep their size on screen at any
+# zoom, and drag with snapping (Ctrl) and precision (Shift) for free. Six
+# arrows, one per wall, each moving only its own wall — the opposite one stays
+# put, which is what "cut here" means. A ring in the middle moves the whole
+# box. The box itself and its sizes are drawn with the gpu module.
+# ---------------------------------------------------------------------------
+
+# Axis colours as in Blender's own navigation gizmo, so X/Y/Z read at once.
+AXIS_RGB = ((0.96, 0.30, 0.33), (0.47, 0.80, 0.18), (0.24, 0.55, 0.96))
+BOX_RGB = (1.0, 0.58, 0.16)             # the brand orange, for faces and the ring
+MIN_BOX_MM = 5.0
+
+
+def _box_frame(box):
+    """The box as (world matrix, local min corner, local max corner). Read from
+    the mesh, not assumed to be the unit cube: it may have been edited."""
+    from mathutils import Vector
+    bb = [Vector(c) for c in box.bound_box]
+    lo = Vector([min(c[i] for c in bb) for i in range(3)])
+    hi = Vector([max(c[i] for c in bb) for i in range(3)])
+    return box.matrix_world.copy(), lo, hi
+
+
+def _wall_anchor(box, axis: int, sign: int):
+    """For the wall on side `sign` of `axis`: the centre of the OPPOSITE wall
+    in world space, the outward direction, and the box's extent along it.
+    The arrow hangs from the opposite wall at a distance equal to the extent,
+    so the extent is the arrow's value and the opposite wall stays fixed."""
+    m, lo, hi = _box_frame(box)
+    c = (lo + hi) / 2
+    c[axis] = lo[axis] if sign > 0 else hi[axis]
+    rot = m.to_3x3()
+    col = rot.col[axis]
+    direction = col.normalized() * sign
+    extent = col.length * (hi[axis] - lo[axis])
+    return m @ c, direction, extent
+
+
+def _set_wall(box, axis: int, sign: int, extent: float) -> None:
+    """Move one wall so the box is `extent` mm long on that axis."""
+    from mathutils import Matrix
+    m, lo, hi = _box_frame(box)
+    local_len = hi[axis] - lo[axis]
+    if local_len <= 1e-9:
+        return
+    anchor_local = (lo + hi) / 2
+    anchor_local[axis] = lo[axis] if sign > 0 else hi[axis]
+    anchor_world = m @ anchor_local
+    loc, rot, scl = m.decompose()
+    scl[axis] = max(extent, MIN_BOX_MM) / local_len
+    new = Matrix.LocRotScale(loc, rot, scl)
+    # Scaling pivots on the object origin; shift back so the opposite wall
+    # is exactly where it was.
+    loc = loc + (anchor_world - new @ anchor_local)
+    box.matrix_world = Matrix.LocRotScale(loc, rot, scl)
+
+
+def _box_centre(box):
+    m, lo, hi = _box_frame(box)
+    return m @ ((lo + hi) / 2)
+
+
+def _move_box_to(box, centre) -> None:
+    from mathutils import Vector
+    m = box.matrix_world.copy()
+    m.translation += Vector(centre) - _box_centre(box)
+    box.matrix_world = m
+
+
+def _active_box(context):
+    """The box the handles and the overlay work on: present, visible, and in
+    Object Mode (in Edit Mode the handles would fight Blender's own)."""
+    p = getattr(context.scene, "dental9", None)
+    if p is None or context.mode != "OBJECT" or not _region_visible(p):
+        return None
+    return p.crop_box
+
+
+class DENTAL9_GGT_crop_box(bpy.types.GizmoGroup):
+    bl_idname = "DENTAL9_GGT_crop_box"
+    bl_label = "OdentAI crop box"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "WINDOW"
+    # SHOW_MODAL_ALL keeps every handle visible while one is dragged, so the
+    # box never looks half-finished mid-drag.
+    bl_options = {"3D", "PERSISTENT", "SHOW_MODAL_ALL"}
+
+    @classmethod
+    def poll(cls, context):
+        return _active_box(context) is not None
+
+    def setup(self, context):
+        self.walls = []
+        for axis in range(3):
+            for sign in (1, -1):
+                gz = self.gizmos.new("GIZMO_GT_arrow_3d")
+                gz.target_set_handler("offset", get=self._getter(axis, sign),
+                                      set=self._setter(axis, sign))
+                gz.color = AXIS_RGB[axis]
+                gz.alpha = 0.85
+                gz.color_highlight = tuple(min(1.0, v + 0.25) for v in AXIS_RGB[axis])
+                gz.alpha_highlight = 1.0
+                gz.line_width = 3.0
+                gz.scale_basis = 1.6
+                self.walls.append((gz, axis, sign))
+
+        mv = self.gizmos.new("GIZMO_GT_move_3d")
+        mv.target_set_handler("offset", get=self._get_centre, set=self._set_centre)
+        mv.draw_options = {"ALIGN_VIEW", "FILL_SELECT"}
+        mv.color = BOX_RGB
+        mv.alpha = 0.8
+        mv.color_highlight = (1.0, 0.8, 0.5)
+        mv.alpha_highlight = 1.0
+        mv.line_width = 3.0
+        mv.scale_basis = 0.3
+        self.mover = mv
+
+    # Handlers look the box up on every call: the gizmo group outlives any one
+    # box (a new preview replaces it), and a stale reference would crash.
+    @staticmethod
+    def _getter(axis, sign):
+        def get():
+            box = _active_box(bpy.context)
+            return _wall_anchor(box, axis, sign)[2] if box else 0.0
+        return get
+
+    @staticmethod
+    def _setter(axis, sign):
+        def set_(value):
+            box = _active_box(bpy.context)
+            if box:
+                _set_wall(box, axis, sign, value)
+        return set_
+
+    @staticmethod
+    def _get_centre():
+        box = _active_box(bpy.context)
+        return tuple(_box_centre(box)) if box else (0.0, 0.0, 0.0)
+
+    @staticmethod
+    def _set_centre(value):
+        box = _active_box(bpy.context)
+        if box:
+            _move_box_to(box, value)
+
+    def draw_prepare(self, context):
+        """Put every handle where the box is now — also mid-drag."""
+        from mathutils import Matrix
+        box = _active_box(context)
+        if box is None:
+            return
+        for gz, axis, sign in self.walls:
+            anchor, direction, _extent = _wall_anchor(box, axis, sign)
+            rot = direction.to_track_quat("Z", "Y").to_matrix().to_4x4()
+            gz.matrix_basis = Matrix.Translation(anchor) @ rot
+        # The mover's value IS the centre, in world space, so its basis stays
+        # at the origin.
+        self.mover.matrix_basis = Matrix.Identity(4)
+
+
+# Corner order of Object.bound_box: 0 (-,-,-) 1 (-,-,+) 2 (-,+,+) 3 (-,+,-)
+# 4 (+,-,-) 5 (+,-,+) 6 (+,+,+) 7 (+,+,-). Edges grouped by the axis they run
+# along, so each is drawn in its axis colour.
+_BOX_EDGES = (((0, 4), (1, 5), (2, 6), (3, 7)),        # along X
+              ((0, 3), (1, 2), (4, 7), (5, 6)),        # along Y
+              ((0, 1), (3, 2), (4, 5), (7, 6)))        # along Z
+_BOX_TRIS = ((0, 1, 2), (0, 2, 3), (4, 7, 6), (4, 6, 5), (0, 4, 5), (0, 5, 1),
+             (3, 2, 6), (3, 6, 7), (0, 3, 7), (0, 7, 4), (1, 5, 6), (1, 6, 2))
+_DRAW_HANDLERS = []
+
+
+def _box_corners(box):
+    m = box.matrix_world
+    from mathutils import Vector
+    return [m @ Vector(c) for c in box.bound_box]
+
+
+def _draw_box_3d():
+    """The box: faint orange walls, edges in their axis colours, seen through
+    the bone so the walls are never lost behind it."""
+    box = _active_box(bpy.context)
+    if box is None:
+        return
+    import gpu
+    from gpu_extras.batch import batch_for_shader
+    pts = [tuple(v) for v in _box_corners(box)]
+    gpu.state.blend_set("ALPHA")
+    gpu.state.depth_test_set("NONE")
+    try:
+        sh = gpu.shader.from_builtin("UNIFORM_COLOR")
+        batch = batch_for_shader(sh, "TRIS", {"pos": pts}, indices=_BOX_TRIS)
+        sh.uniform_float("color", (*BOX_RGB, 0.03))
+        batch.draw(sh)
+
+        sh = gpu.shader.from_builtin("POLYLINE_UNIFORM_COLOR")
+        region = bpy.context.region
+        sh.uniform_float("viewportSize", (region.width, region.height))
+        sh.uniform_float("lineWidth", 2.0 * _ui_scale())
+        for axis, edges in enumerate(_BOX_EDGES):
+            seg = [pts[i] for e in edges for i in e]
+            batch = batch_for_shader(sh, "LINES", {"pos": seg})
+            sh.uniform_float("color", (*AXIS_RGB[axis], 0.9))
+            batch.draw(sh)
+    finally:
+        gpu.state.blend_set("NONE")
+        gpu.state.depth_test_set("LESS_EQUAL")
+
+
+def _draw_box_labels():
+    """The size along each axis, in millimetres, beside the middle of an edge."""
+    box = _active_box(bpy.context)
+    if box is None:
+        return
+    import blf
+    from bpy_extras.view3d_utils import location_3d_to_region_2d
+    region, rv3d = bpy.context.region, bpy.context.region_data
+    if rv3d is None:
+        return
+    pts = _box_corners(box)
+    font = 0
+    s = _ui_scale()
+    blf.size(font, 13 * s)
+    blf.enable(font, blf.SHADOW)
+    blf.shadow(font, 3, 0.0, 0.0, 0.0, 0.8)
+    for axis, edges in enumerate(_BOX_EDGES):
+        # Label the edge whose middle is lowest on screen: it is the one in
+        # front more often than not and does not sit on the arrows.
+        best = None
+        for i, j in edges:
+            mid = location_3d_to_region_2d(region, rv3d, (pts[i] + pts[j]) / 2)
+            if mid is not None and (best is None or mid.y < best.y):
+                best = mid
+        if best is None:
+            continue
+        size = (pts[edges[0][1]] - pts[edges[0][0]]).length
+        blf.color(font, *AXIS_RGB[axis], 1.0)
+        blf.position(font, best.x + 6 * s, best.y + 6 * s, 0)
+        blf.draw(font, f"{'XYZ'[axis]} {size:.1f} mm")
+    blf.disable(font, blf.SHADOW)
+
+
+def _add_draw_handlers() -> None:
+    sv = bpy.types.SpaceView3D
+    _DRAW_HANDLERS.append(sv.draw_handler_add(_draw_box_3d, (), "WINDOW", "POST_VIEW"))
+    _DRAW_HANDLERS.append(sv.draw_handler_add(_draw_box_labels, (), "WINDOW", "POST_PIXEL"))
+
+
+def _remove_draw_handlers() -> None:
+    for h in _DRAW_HANDLERS:
+        try:
+            bpy.types.SpaceView3D.draw_handler_remove(h, "WINDOW")
+        except (ValueError, RuntimeError):
+            pass
+    _DRAW_HANDLERS.clear()
+
+
+class DENTAL9_OT_open_log(Operator):
+    bl_idname = "dental9.open_log"
+    bl_label = "Open last log"
+    bl_description = ("The full output of the last run: system, memory, the error "
+                      "and its details. Send this file when something fails")
+
+    def execute(self, context):
+        path = _log_path()
+        if not os.path.isfile(path):
+            self.report({"WARNING"}, "no run yet")
+            return {"CANCELLED"}
+        bpy.ops.wm.path_open(filepath=path)
+        return {"FINISHED"}
 
 
 class DENTAL9_OT_select_all(Operator):
@@ -890,6 +1462,33 @@ class DENTAL9_OT_select_all(Operator):
         for key, _l, _h, _r, _a, _o in CLASSES:
             setattr(context.scene.dental9, key, self.state)
         return {"FINISHED"}
+
+
+def _draw_region(layout, context, p) -> None:
+    """Bone preview and the crop box: what part of the scan gets computed."""
+    box = layout.box()
+    row = box.row(align=True)
+    row.label(text="Region")
+    if p.preview_obj or p.crop_box:
+        row.operator("dental9.toggle_region", text="",
+                     icon="HIDE_OFF" if _region_visible(p) else "HIDE_ON")
+        row.operator("dental9.fit_box", text="", icon="SHADING_BBOX")
+        row.operator("dental9.remove_preview", text="", icon="TRASH")
+    box.operator("dental9.preview", icon="MESH_CUBE")
+    if not p.crop_box:
+        box.label(text="whole scan", icon="INFO")
+        return
+    box.prop(p, "use_crop")
+    if _region_visible(p) and context.mode == "OBJECT":
+        box.label(text="drag the arrows, the ring moves", icon="INFO")
+    col = box.column(align=True)
+    col.enabled = p.use_crop
+    col.prop(p.crop_box, "location", text="Centre")
+    # Dimensions rather than scale: millimetres, whatever the box's history.
+    col.prop(p.crop_box, "dimensions", text="Size (mm)")
+    src = p.preview_obj.get("odentai_source") if p.preview_obj else None
+    if src and os.path.normcase(src) != os.path.normcase(bpy.path.abspath(p.input_path)):
+        box.label(text="the preview is of another scan", icon="ERROR")
 
 
 class DENTAL9_PT_panel(Panel):
@@ -906,6 +1505,8 @@ class DENTAL9_PT_panel(Panel):
         row = col.row(align=True)
         row.prop(p, "input_path")
         row.operator("dental9.pick_path", text="", icon="FILEBROWSER")
+
+        _draw_region(self.layout, context, p)
 
         box = self.layout.box()
         box.label(text="Classes")
@@ -940,6 +1541,7 @@ class DENTAL9_PT_panel(Panel):
         box = self.layout.box()
         row = box.row(align=True)
         row.label(text="Hardware")
+        row.operator("dental9.open_log", text="", icon="TEXT")
         row.operator("dental9.diagnose", text="", icon="FILE_REFRESH")
         if not _DIAG:
             box.label(text="not checked yet", icon="QUESTION")
@@ -949,9 +1551,12 @@ class DENTAL9_PT_panel(Panel):
             box.label(text=f"computing on: {g.get('device_used', '?')}",
                       icon="CHECKMARK" if "GPU" in g.get("device_used", "")
                       else "ERROR")
-            names = _DIAG.get("gpu_names")
-            if names:
-                box.label(text=names[0][:34], icon="DOT")
+            gpus = _DIAG.get("gpus") or [{"name": n} for n in _DIAG.get("gpu_names", [])]
+            for gpu in gpus[:2]:
+                vram = f", {gpu['vram_gb']:g} GB" if gpu.get("vram_gb") else ""
+                box.label(text=(gpu["name"][:34 - len(vram)] + vram), icon="DOT")
+            if g.get("full_tile_seconds"):
+                box.label(text=f"working tile: {g['full_tile_seconds']} s", icon="DOT")
             if g.get("case_seconds_estimate"):
                 box.label(text=f"~{g['case_seconds_estimate']} s per scan",
                           icon="TIME")
@@ -1010,6 +1615,8 @@ class DENTAL9_PT_about(Panel):
 # The About sub-panel must come after its parent: Blender resolves
 # bl_parent_id at registration time.
 CLASSES_RNA = (Dental9Prefs, Dental9Props, DENTAL9_OT_segment,
+               DENTAL9_OT_preview, DENTAL9_OT_remove_preview, DENTAL9_OT_open_log,
+               DENTAL9_OT_fit_box, DENTAL9_OT_toggle_region, DENTAL9_GGT_crop_box,
                DENTAL9_OT_diagnose, DENTAL9_OT_pick_path, DENTAL9_OT_select_all,
                DENTAL9_PT_panel, DENTAL9_PT_about)
 
@@ -1019,9 +1626,11 @@ def register():
     for c in CLASSES_RNA:
         bpy.utils.register_class(c)
     bpy.types.Scene.dental9 = bpy.props.PointerProperty(type=Dental9Props)
+    _add_draw_handlers()
 
 
 def unregister():
+    _remove_draw_handlers()
     del bpy.types.Scene.dental9
     for c in reversed(CLASSES_RNA):
         bpy.utils.unregister_class(c)

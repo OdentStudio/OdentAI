@@ -131,6 +131,41 @@ def _read_zip(path: str) -> sitk.Image:
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def _corners(lo, hi):
+    return [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1])
+            for z in (lo[2], hi[2])]
+
+
+def physical_bounds(img: sitk.Image):
+    """The axis-aligned box the scan occupies in patient coordinates (mm),
+    voxel edges included: (min xyz, max xyz). Same frame as the STL files."""
+    n = img.GetSize()
+    pts = np.array([img.TransformContinuousIndexToPhysicalPoint(c)
+                    for c in _corners((-0.5, -0.5, -0.5),
+                                      (n[0] - 0.5, n[1] - 0.5, n[2] - 0.5))])
+    return pts.min(0), pts.max(0)
+
+
+def crop_to_box(img: sitk.Image, lo, hi) -> sitk.Image:
+    """Keep only the voxels inside a box given in patient coordinates (mm).
+
+    The box comes from the add-on, drawn over the preview surface, so it is in
+    the same frame as the STL files. The scan grid may be rotated against that
+    frame; the crop is then the grid-aligned box that contains the drawn one —
+    slightly more, never less. The cropped image keeps its physical position,
+    so everything downstream (the meshes included) lands where it was.
+    """
+    n = np.array(img.GetSize())
+    idx = np.array([img.TransformPhysicalPointToContinuousIndex(tuple(float(v) for v in c))
+                    for c in _corners(lo, hi)])
+    a = np.maximum(np.floor(idx.min(0) + 0.5).astype(int), 0)
+    b = np.minimum(np.ceil(idx.max(0) + 0.5).astype(int), n)
+    if np.any(b - a < 2):
+        raise RuntimeError("the crop box does not overlap the scan: move it over "
+                           "the preview surface and try again")
+    return sitk.RegionOfInterest(img, [int(v) for v in b - a], [int(v) for v in a])
+
+
 def to_training_grid(img: sitk.Image, spacing: float = 0.3) -> sitk.Image:
     """LPS and the given spacing. Returns an image, not an array: the geometry
     is still needed to put the labels back on the original grid and to build

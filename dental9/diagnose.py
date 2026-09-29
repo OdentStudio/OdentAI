@@ -94,8 +94,15 @@ def _accum_seconds_per_voxel() -> float:
     return (time.time() - t0) / 3.0 / float(np.prod(tile))
 
 
-def _probe(model: str, device: str) -> dict:
-    """Open a session and actually run one tile."""
+def _probe(model: str, device: str, full_tile=None) -> dict:
+    """Open a session and actually run one tile.
+
+    On a GPU, then also the working tile the segmentation uses. The small
+    probe only proves the card comes up; whether the real tile fits into its
+    memory, and how close it runs to the driver timeout, is a separate
+    question — and the one that fails on laptops (2026-09-29, RTX 2070 Max-Q:
+    the check was green, the run died on the second tile).
+    """
     from . import infer as _infer
     r = {"device_asked": device}
     try:
@@ -117,7 +124,21 @@ def _probe(model: str, device: str) -> dict:
         r["status"] = OK
     except Exception as e:                              # noqa: BLE001
         r["status"] = BAD
-        r["error"] = str(e).strip().splitlines()[0][:300]
+        r["error"] = (_infer.readable_error(e).splitlines() or [""])[0][:300]
+        return r
+    if full_tile and "GPU" in r.get("device_used", ""):
+        t = tuple(int(v) for v in full_tile)
+        r["full_tile"] = list(t)
+        try:
+            x = np.random.randn(1, 1, *t).astype(np.float32)
+            sess.run(None, {name: x})                   # warm-up for this shape
+            t0 = time.time()
+            sess.run(None, {name: x})
+            r["full_tile_seconds"] = round(time.time() - t0, 2)
+            from . import sysinfo
+            r["vram_after_full_tile"] = sysinfo.vram_used()
+        except Exception as e:                          # noqa: BLE001
+            r["full_tile_error"] = _infer.readable_error(e)[:400]
     return r
 
 
@@ -132,6 +153,19 @@ def _advice(rep: dict) -> list:
         est = gpu.get("case_seconds_estimate")
         out.append((OK, f"Graphics card is working: {used}. About {est} s per "
                         "scan, plus a few seconds for reading and meshing."))
+        t = gpu.get("full_tile")
+        ts = "x".join(str(v) for v in t) if t else ""
+        if gpu.get("full_tile_error"):
+            out.append((WARN, f"The working tile {ts} does NOT fit this graphics "
+                              "card. Segmentation will retry with smaller tiles; if "
+                              "it still fails, crop the scan or compute on the CPU. "
+                              f"onnxruntime says: {gpu['full_tile_error'][:200]}"))
+        elif gpu.get("full_tile_seconds", 0) > 1.5:
+            out.append((WARN, f"The working tile {ts} takes "
+                              f"{gpu['full_tile_seconds']} s on this card — close to "
+                              "the 2 s Windows driver timeout, which resets the card. "
+                              "On a laptop, plug in the charger and pick maximum "
+                              "performance."))
     else:
         est = (rep.get("cpu") or gpu or {}).get("case_seconds_estimate")
         how_long = (f", roughly {est // 60} min per scan instead of ten seconds."
@@ -187,6 +221,7 @@ def collect(model: str) -> dict:
     import onnxruntime as ort
 
     from . import infer as _infer
+    from . import sysinfo
 
     have = _infer.available_providers()
     rep = {
@@ -203,8 +238,10 @@ def collect(model: str) -> dict:
         "providers": {"has_dml": "DmlExecutionProvider" in have,
                       "has_cuda": "CUDAExecutionProvider" in have},
         "gpu_names": _gpu_names(),
+        "gpus": sysinfo.gpus(),
         "model": {"path": model, "exists": os.path.isfile(model)},
     }
+    rep["platform"]["cpu"] = sysinfo.cpu_name()
     if rep["model"]["exists"]:
         rep["model"]["size_mb"] = round(os.path.getsize(model) / 1e6)
         cfg = None
@@ -226,12 +263,13 @@ def collect(model: str) -> dict:
         # One probe only: if the card did not come up, onnxruntime already
         # fell back to the CPU and the measurement is a CPU one — no point
         # measuring it twice.
-        rep["gpu"] = _probe(model, "auto")
+        rep["gpu"] = _probe(model, "auto", (cfg or {}).get("tile"))
     rep["advice"] = [{"level": lvl, "text": txt} for lvl, txt in _advice(rep)]
     return rep
 
 
 def format_text(rep: dict) -> str:
+    from . import sysinfo
     p = rep["platform"]
     lines = [
         "hardware check",
@@ -239,7 +277,8 @@ def format_text(rep: dict) -> str:
         f"system:        {p['system']} {p['release']} ({p['machine']})",
         f"cpu:           {p['cpu_count']} cores"
         + (f", {p['ram_gb']:.0f} GB RAM" if p.get("ram_gb") else ""),
-        f"graphics:      {', '.join(rep['gpu_names']) or 'not detected'}",
+        f"processor:     {p.get('cpu', '')}",
+        f"graphics:      {'; '.join(sysinfo.describe_gpu(g) for g in rep.get('gpus', [])) or ', '.join(rep['gpu_names']) or 'not detected'}",
         f"onnxruntime:   {rep['onnxruntime']['version']}",
         f"providers:     {', '.join(rep['onnxruntime']['providers'])}",
     ]
@@ -261,6 +300,13 @@ def format_text(rep: dict) -> str:
                          f"-> ~{r['case_seconds_estimate']} s per scan")
         else:
             lines.append(f"probe on {where}:  failed — {r.get('error', '')}")
+        if r.get("full_tile"):
+            ts = "x".join(str(v) for v in r["full_tile"])
+            lines.append(f"working tile:  {ts}: "
+                         + (f"FAILED — {r['full_tile_error']}" if r.get("full_tile_error")
+                            else f"{r.get('full_tile_seconds')} s"
+                            + (f", VRAM used {r['vram_after_full_tile']}"
+                               if r.get("vram_after_full_tile") else "")))
     lines.append("-" * 60)
     mark = {OK: "[ ok ]", WARN: "[ !  ]", BAD: "[ !! ]"}
     for a in rep["advice"]:

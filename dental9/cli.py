@@ -62,6 +62,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--teeth-model", default=None,
                    help="the .onnx weights of the teeth-numbering model; by default "
                         "teeth_fdi.onnx next to the main model")
+    p.add_argument("--crop", type=float, nargs=6, default=None,
+                   metavar=("X0", "Y0", "Z0", "X1", "Y1", "Z1"),
+                   help="compute only inside this box: two opposite corners in mm, "
+                        "patient coordinates (the frame the STL files are in)")
+    p.add_argument("--preview", action="store_true",
+                   help="no network: a quick bone surface by threshold "
+                        "(preview.stl + preview.json in -o), to draw a crop box on")
     p.add_argument("--threads", type=int, default=0)
     p.add_argument("--providers", action="store_true",
                    help="list the onnxruntime providers and exit")
@@ -111,6 +118,15 @@ def main(argv=None) -> int:
         print("an input scan and -o are required", file=sys.stderr)
         return 2
 
+    if a.preview:
+        from .preview import make_preview
+        try:
+            make_preview(a.input, a.out)
+        except Exception as e:
+            _report_error(e)
+            return 1
+        return 0
+
     last = [0.0]
 
     def progress(done, total):
@@ -132,13 +148,36 @@ def main(argv=None) -> int:
                    make_stl=not a.no_stl,
                    threads=a.threads,
                    separate_teeth=a.separate_teeth,
-                   teeth_model=a.teeth_model or "")
+                   teeth_model=a.teeth_model or "",
+                   crop=a.crop)
     try:
         segment(a.input, a.out, opts, progress=progress)
     except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
+        _report_error(e)
         return 1
     return 0
+
+
+def _report_error(e: BaseException) -> None:
+    """The error in readable form, then the traceback and the memory state.
+
+    The ERROR line comes first and alone: the add-on shows it to the user.
+    The rest is for whoever reads the log afterwards.
+    """
+    import traceback
+
+    from .infer import readable_error
+    from .sysinfo import snapshot
+    sys.stdout.flush()
+    print(f"ERROR: {readable_error(e)}", file=sys.stderr)
+    print("---- details for the developer ----", file=sys.stderr)
+    print(f"type: {type(e).__name__}"
+          + (f", caused by {type(e.__cause__).__name__}" if e.__cause__ else ""),
+          file=sys.stderr)
+    print(f"memory: {snapshot()}", file=sys.stderr)
+    print("".join(traceback.format_exception(type(e), e, e.__traceback__)).rstrip(),
+          file=sys.stderr)
+    print("---- end of details ----", file=sys.stderr)
 
 
 if __name__ == "__main__":

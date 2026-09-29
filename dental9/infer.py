@@ -8,7 +8,9 @@ Compute on the GPU: DirectML on Windows, CUDA on Linux; the CPU is only the
 fallback path, an order of magnitude slower.
 """
 import os
-from typing import List, Optional, Sequence, Tuple
+import sys
+import time
+from typing import Callable, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -116,6 +118,35 @@ def fit_tile(tile: Sequence[int], shape: Sequence[int],
     return tuple(out)
 
 
+def readable_error(e: BaseException) -> str:
+    """The text of an error, including the one onnxruntime failed to deliver.
+
+    On a non-English Windows a DirectML failure carries the system message in
+    the locale code page (cp1251 and the like). pybind11 decodes it as UTF-8,
+    fails, and what reaches Python is a UnicodeDecodeError about a codec
+    instead of the actual error — seen on 2026-09-29, "'utf-8' codec can't
+    decode byte 0xc3", on a laptop that most likely ran out of video memory.
+    The original bytes are still inside the exception; decode them with the
+    code page they were written in.
+    """
+    if isinstance(e, UnicodeDecodeError) and isinstance(e.object, (bytes, bytearray)):
+        enc = "mbcs" if sys.platform == "win32" else "latin-1"
+        try:
+            return bytes(e.object).decode(enc, "replace").strip()
+        except Exception:                               # noqa: BLE001
+            return bytes(e.object).decode("latin-1", "replace").strip()
+    return str(e).strip()
+
+
+class TileError(RuntimeError):
+    """A tile failed to run. Carries where it happened, so the log can say
+    which tile, how large and after how long — not just that it failed."""
+
+    def __init__(self, text: str, tile, index: int, total: int):
+        super().__init__(text)
+        self.text, self.tile, self.index, self.total = text, tuple(tile), index, total
+
+
 def _starts(n: int, p: int, step: int) -> List[int]:
     if n <= p:
         return [0]
@@ -127,14 +158,20 @@ def _starts(n: int, p: int, step: int) -> List[int]:
 
 def predict_logits(sess, vol: np.ndarray, tile: Sequence[int],
                    overlap: float = 0.5, progress=None,
-                   acc_dtype=np.float32, divisor: Sequence[int] = DIVISOR) -> np.ndarray:
+                   acc_dtype=np.float32, divisor: Sequence[int] = DIVISOR,
+                   log: Optional[Callable[[str], None]] = None) -> np.ndarray:
     """Logits (classes, z, y, x) on the input volume's grid.
 
     The accumulator buffer scales with the SCAN, not the tile: 10 classes over
     the whole volume. On the standard 100 mm frame (334³) that is 1.5 GB in
     float32, on a 587³ frame 8 GB. It lives in RAM, not in VRAM, so the
     graphics card only needs the tile itself.
+
+    With `log`, the first tile's time and the memory after it are logged, and
+    at the end the slowest tile: a tile near two seconds on a GPU is at the
+    edge of the Windows driver timeout (TDR), which resets the card.
     """
+    from . import sysinfo
     vol = np.ascontiguousarray(vol, dtype=np.float32)
     tile = fit_tile(tile, vol.shape, divisor)
     # The frame may be thinner than the tile — then pad with air at the edge.
@@ -152,12 +189,27 @@ def predict_logits(sess, vol: np.ndarray, tile: Sequence[int],
     acc: Optional[np.ndarray] = None
     wsum = np.zeros(shape, np.float32)
     done = 0
+    times: List[float] = []
     for z in starts[0]:
         for y in starts[1]:
             for x in starts[2]:
                 sl = (slice(z, z + tile[0]), slice(y, y + tile[1]),
                       slice(x, x + tile[2]))
-                out = sess.run(None, {name: vol[sl][None, None]})[0][0]
+                t0 = time.time()
+                try:
+                    out = sess.run(None, {name: vol[sl][None, None]})[0][0]
+                except Exception as e:                   # noqa: BLE001
+                    text = readable_error(e)
+                    if log:
+                        last = f", the previous one took {times[-1]:.2f} s" if times else ""
+                        log(f"  tile {done + 1}/{total} at z{z} y{y} x{x} failed after "
+                            f"{time.time() - t0:.2f} s{last}")
+                        log(f"  memory at the failure: {sysinfo.snapshot()}")
+                    raise TileError(text, tile, done + 1, total) from e
+                times.append(time.time() - t0)
+                if log and len(times) == 1:
+                    log(f"  first tile: {times[0]:.2f} s (includes warm-up); "
+                        f"{sysinfo.snapshot()}")
                 if acc is None:
                     acc = np.zeros((out.shape[0], *shape), acc_dtype)
                 acc[(slice(None), *sl)] += (out * gauss).astype(acc_dtype)
@@ -165,6 +217,10 @@ def predict_logits(sess, vol: np.ndarray, tile: Sequence[int],
                 done += 1
                 if progress:
                     progress(done, total)
+    if log and len(times) > 1:
+        rest = times[1:]
+        log(f"  tiles: {len(times)}, {sum(rest) / len(rest):.2f} s on average, "
+            f"slowest {max(rest):.2f} s")
     # Dividing is optional — argmax does not change under a positive per-voxel
     # factor — but the logits are wanted in a meaningful form for thresholds
     # and debugging.
@@ -182,12 +238,28 @@ TILE_LADDER = [(160, 320, 320), (128, 256, 256), (96, 192, 192), (64, 128, 128)]
 
 _OOM_MARKS = ("out of memory", "outofmemory", "failed to allocate",
               "allocation failed", "hipErrorOutOfMemory", "cudaErrorMemoryAllocation",
-              "E_OUTOFMEMORY", "insufficient")
+              "E_OUTOFMEMORY", "insufficient",
+              # The HRESULTs, because the words around them are localised on a
+              # non-English Windows: E_OUTOFMEMORY and DXGI's own out-of-memory.
+              "8007000e", "887a0004")
+
+# The card was reset under us: the driver timeout (TDR) on a tile that runs
+# too long, or DirectML reporting video memory exhaustion as a lost device.
+# The session is dead after that and has to be recreated; a smaller tile
+# then both fits and finishes sooner, which cures either cause.
+_LOST_MARKS = ("887a0005", "887a0006", "887a0007", "887a0020",
+               "device_removed", "device removed", "device_hung", "device hung",
+               "device_reset", "devicelost", "device lost")
 
 
 def is_oom(e: BaseException) -> bool:
-    t = str(e).lower()
+    t = readable_error(e).lower()
     return any(m.lower() in t for m in _OOM_MARKS)
+
+
+def is_device_lost(e: BaseException) -> bool:
+    t = readable_error(e).lower()
+    return any(m in t for m in _LOST_MARKS)
 
 
 def ladder_from(tile: Sequence[int],
@@ -210,27 +282,64 @@ def ladder_from(tile: Sequence[int],
     return [t] + rest
 
 
+class SessionRef:
+    """A session that can be recreated after the graphics card is reset.
+
+    Callers keep the reference and read `.sess` after each prediction: after
+    a lost device the old session is dead, and the replacement is what the
+    rest of the run (the canal pass) must use.
+    """
+
+    def __init__(self, path: str, device: str = "auto", threads: int = 0, sess=None):
+        self.path, self.device, self.threads = path, device, threads
+        self.sess = sess if sess is not None else make_session(path, device, threads)
+
+    def reopen(self):
+        self.sess = None                  # release the dead one before the new one
+        self.sess = make_session(self.path, self.device, self.threads)
+        return self.sess
+
+
 def predict_logits_auto(sess, vol: np.ndarray, tile: Sequence[int],
                         overlap: float = 0.5, progress=None,
                         acc_dtype=np.float32, log=None,
                         divisor: Sequence[int] = DIVISOR):
-    """The same, but falling back to a smaller tile when video memory runs out.
+    """The same, but falling back to a smaller tile when video memory runs out
+    or the card is reset.
 
-    Only out-of-memory is caught, nothing else: silently swallowing any error
+    Only those two are caught, nothing else: silently swallowing any error
     and returning a lower-quality result is the worst possible outcome,
     because it looks fine.
+
+    `sess` is a session or a SessionRef; only a SessionRef can recover from a
+    lost device, a bare session cannot be recreated here.
     """
+    ref = sess if isinstance(sess, SessionRef) else None
     last = None
     for t in ladder_from(tile, divisor):
+        s = ref.sess if ref else sess
         try:
-            return predict_logits(sess, vol, t, overlap, progress, acc_dtype, divisor), t
+            return predict_logits(s, vol, t, overlap, progress, acc_dtype, divisor, log), t
         except Exception as e:                       # noqa: BLE001
-            if not is_oom(e):
-                raise
-            last = e
+            oom, lost = is_oom(e), is_device_lost(e)
+            text = readable_error(e)
             if log:
+                log(f"  GPU error: {text}")
+            if not (oom or lost):
+                raise
+            last = text
+            if lost:
+                if ref is None:
+                    raise
+                if log:
+                    log(f"  the graphics card was reset on tile {t} (driver timeout "
+                        "or video memory) — reopening the session, trying a smaller tile")
+                ref.reopen()
+            elif log:
                 log(f"  tile {t} did not fit in video memory, trying a smaller one")
-    raise RuntimeError(f"not enough video memory even for the smallest tile: {last}")
+    raise RuntimeError(f"the graphics card fails even on the smallest tile: {last}. "
+                       "Crop the scan to the area of interest or set Compute on = CPU "
+                       "in the add-on preferences.")
 
 
 def predict(sess, vol: np.ndarray, tile: Sequence[int], overlap: float = 0.5,

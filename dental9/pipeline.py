@@ -16,6 +16,7 @@ import SimpleITK as sitk
 from . import infer as _infer
 from . import io as _io
 from . import mesh as _mesh
+from . import sysinfo as _sysinfo
 from . import teeth as _teeth
 from . import winpath as _winpath
 from .classes import CLASSES, Klass
@@ -30,6 +31,8 @@ SANE_SPACING_MM = (0.04, 1.2)
 # that a lot of RAM is needed; above a share of the available RAM we refuse,
 # otherwise the machine swaps and freezes instead of failing honestly.
 WARN_BUFFER_GB = 4.0
+# Resident memory of an open onnxruntime session with its weights, measured.
+SESSION_RAM_GB = 2.0
 
 # Signs of a broken canal. Thresholds calibrated on 30 labelled cases: each
 # one trips on at most 3% of healthy canals. Also stored in dental9.json — the
@@ -62,6 +65,7 @@ class Options:
     threads: int = 0
     separate_teeth: bool = False   # second pass: individual teeth with FDI numbers
     teeth_model: str = ""          # weights for that pass; default teeth_fdi.onnx next to the main model
+    crop: Optional[Sequence[float]] = None   # x0 y0 z0 x1 y1 z1, mm in patient coordinates (the STL frame)
 
 
 def _free_ram_gb() -> Optional[float]:
@@ -289,6 +293,39 @@ def _signed_fields(logits: np.ndarray, ids: Sequence[int]) -> Dict[int, np.ndarr
     return out
 
 
+def _peak_ram_estimate_gb(n: int, num_classes: int, n_out: int,
+                          teeth: bool, fields: bool) -> float:
+    """The most RAM the run will hold at once, from the grid size alone.
+
+    Two candidates for the peak: during inference (volume, logit buffer,
+    weight sum) and while the signed fields are built (volume, logit buffer,
+    labels and one float32 field per output class). The HU copy for the teeth
+    pass lives through both. On top: the onnxruntime session itself, measured
+    at about 2 GB resident with DirectML (2026-09-29, 367³ grid: estimate
+    within 0.1 GB of the measured 6.5 GB peak).
+    """
+    acc = num_classes * (2 if n > 150_000_000 else 4)
+    during = 4 + acc + 4
+    after = 4 + acc + 1 + (4 * n_out if fields else 0)
+    return SESSION_RAM_GB + n * (max(during, after) + (2 if teeth else 0)) / 2 ** 30
+
+
+def _log_system(log) -> None:
+    """What the machine is, at the top of every log: the first thing to ask
+    when a run fails on someone else's computer."""
+    import platform
+    total, avail = _sysinfo.ram_gb()
+    log(f"system: {platform.system()} {platform.release()}, {_sysinfo.cpu_name()}"
+        + (f", RAM {avail:.1f} of {total:.1f} GB free" if total else ""))
+    for g in _sysinfo.gpus():
+        log(f"  graphics: {_sysinfo.describe_gpu(g)}")
+    try:
+        import onnxruntime as ort
+        log(f"  onnxruntime {ort.__version__}: {', '.join(ort.get_available_providers())}")
+    except Exception:                                   # noqa: BLE001
+        pass
+
+
 def segment(path: str, outdir: str, opts: Options,
             log: Callable[[str], None] = print,
             progress: Optional[Callable[[int, int], None]] = None) -> dict:
@@ -311,9 +348,20 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
     os.makedirs(outdir, exist_ok=True)
     t_all = time.time()
 
+    _log_system(log)
     log(f"reading: {real_path}")
     src = _io.read_volume(path)
     log(f"  volume {src.GetSize()}, spacing {tuple(round(s, 3) for s in src.GetSpacing())} mm")
+
+    # Labels go back onto the scan's own grid, the whole of it, even when only
+    # a box of it was computed: outside the box they are simply zero.
+    src_full = src
+    if opts.crop:
+        c = [float(v) for v in opts.crop]
+        lo_b, hi_b = np.minimum(c[:3], c[3:]), np.maximum(c[:3], c[3:])
+        src = _io.crop_to_box(src, lo_b, hi_b)
+        log(f"  cropped to the box {tuple(round(float(v), 1) for v in lo_b)} - "
+            f"{tuple(round(float(v), 1) for v in hi_b)} mm: {src.GetSize()} voxels")
 
     sp = src.GetSpacing()
     fov = [round(n * v, 1) for n, v in zip(src.GetSize(), sp)]
@@ -342,6 +390,19 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
             f"this scan needs about {buf_gb:.1f} GB of RAM for the label buffer, "
             f"and only {ram:.1f} GB is available. Crop the scan to the area of "
             "interest, or run it on a machine with more memory.")
+    # The label buffer is not the peak: the signed fields for the meshes
+    # (one float32 volume per class) are built while it is still alive. Logged
+    # so that a run that dies in swap can be told from one that dies on the GPU.
+    src_gb = (src_full.GetNumberOfPixels() * src_full.GetSizeOfPixelComponent()
+              * src_full.GetNumberOfComponentsPerPixel()) / 2 ** 30
+    peak_gb = src_gb + _peak_ram_estimate_gb(vol.size, cfg["num_classes"],
+                                             len(opts.classes), opts.separate_teeth,
+                                             opts.sub_voxel and opts.make_stl)
+    log(f"  estimated peak RAM about {peak_gb:.1f} GB"
+        + (f", {ram:.1f} GB free now" if ram else ""))
+    if ram and peak_gb > ram:
+        log("  WARNING: more than the free memory — Windows will page to disk, "
+            "which is slow and may fail. Crop the scan to the area of interest.")
 
     # Raw HU are needed by the teeth pass: the numbering network has its own
     # intensity window. int16 costs half of float32 and HU fit in it.
@@ -353,7 +414,10 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
                                  "mean": norm["mean"], "std": norm["std"]})
 
     t0 = time.time()
-    sess = _infer.make_session(opts.model, opts.device, opts.threads)
+    # A reference, not a bare session: if the card is reset mid-run the
+    # session is recreated, and the canal pass below must use the new one.
+    ref = _infer.SessionRef(opts.model, opts.device, opts.threads)
+    sess = ref.sess
     dev = _infer.session_device(sess)
     log(f"computing on: {dev}")
     # A silent fallback to the CPU is the worst thing that can happen here:
@@ -364,21 +428,27 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
             "(about 15 times slower)")
         log(f"  available providers: {', '.join(_infer.available_providers())}")
     tile = _infer.fit_tile(opts.tile or cfg["tile"], vol.shape)
+    # What was asked for is the tile fitted to the volume: a small (cropped)
+    # volume shrinks it for geometry, which is not a memory problem and must
+    # not be reported as one.
+    fitted = tile
     log(f"  tile {tile[0]}x{tile[1]}x{tile[2]}, overlap {opts.overlap}")
 
     # On large volumes a float32 logit buffer runs to gigabytes, and float16
     # is precise enough for argmax by a wide margin: the gap between competing
     # classes is orders of magnitude larger than the half-precision step.
     acc_dtype = np.float16 if vol.size > 150_000_000 else np.float32
-    logits, tile = _infer.predict_logits_auto(sess, vol, tile, opts.overlap,
+    logits, tile = _infer.predict_logits_auto(ref, vol, tile, opts.overlap,
                                               progress, acc_dtype, log)
+    sess = ref.sess
     labels = logits.argmax(0).astype(np.uint8)
     t_pred = time.time() - t0
     log(f"  tile in use: {tile[0]}x{tile[1]}x{tile[2]}")
-    log(f"  inference took {t_pred:.1f} s")
+    log(f"  inference took {t_pred:.1f} s; {_sysinfo.snapshot()}")
 
     if opts.canal_refine and any(k.id == 5 for k in opts.classes):
-        new = _refine_canal(vol, labels, sess, cfg, opts, grid.GetSpacing(), log)
+        new = _refine_canal(vol, labels, ref, cfg, opts, grid.GetSpacing(), log)
+        sess = ref.sess
         if new is not labels:
             labels = new
             # The signed fields came from the first pass and no longer match
@@ -392,11 +462,12 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
     ids = [k.id for k in opts.classes]
     fields = _signed_fields(logits, ids) if (opts.sub_voxel and opts.make_stl) else {}
     del logits
+    log(f"  surfaces prepared; {_sysinfo.snapshot()}")
 
     sp = grid.GetSpacing()
     vox_cm3 = float(np.prod(sp)) / 1000.0
     report = {"input": real_path, "grid": list(vol.shape), "tile": list(tile),
-              "requested_tile": list(opts.tile or cfg["tile"]),
+              "requested_tile": list(fitted),
               "predict_seconds": round(t_pred, 1),
               "device": _infer.session_device(sess), "classes": {}}
 
@@ -446,7 +517,7 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
             tcfg = json.load(f)
         log("separating teeth (FDI numbering)")
         t1 = time.time()
-        sess2 = _infer.make_session(tm, opts.device, opts.threads)
+        sess2 = _infer.SessionRef(tm, opts.device, opts.threads)
         numbered, treport = _teeth.separate_teeth(
             vol_hu, labels, grid, sess2, tcfg, None, opts.overlap, fields, outdir,
             opts.taubin, opts.pass_band, opts.decimate, opts.make_stl, log, progress)
@@ -454,17 +525,21 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
         report["teeth"] = treport
         log(f"  teeth pass took {treport['seconds']} s")
         if opts.save_labels:
-            seg = _io.resample_labels_to(src, numbered, grid)
+            seg = _io.resample_labels_to(src_full, numbered, grid)
             sitk.WriteImage(seg, os.path.join(outdir, "teeth_labels.nii.gz"), useCompression=True)
         del sess2, numbered
 
     if opts.save_labels:
-        seg = _io.resample_labels_to(src, labels, grid)
+        seg = _io.resample_labels_to(src_full, labels, grid)
         p = os.path.join(outdir, "labels.nii.gz")
         sitk.WriteImage(seg, p, useCompression=True)
         log("  labels on the original grid -> labels.nii.gz")
 
     report["seconds"] = round(time.time() - t_all, 1)
+    report["peak_ram_gb"] = _sysinfo.process_peak_gb()
+    if opts.crop:
+        report["crop"] = [float(v) for v in opts.crop]
+    log(f"  {_sysinfo.snapshot()}")
     with open(os.path.join(outdir, "report.json"), "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     log(f"done in {report['seconds']} s -> {real_outdir}")
