@@ -1,35 +1,35 @@
 # OdentAI Segment
 
-КЛКТ (DICOM) → девять анатомических поверхностей STL, аддоном в Блендере.
-Нижняя и верхняя челюсть, зубы верхние и нижние, нижнечелюстной канал,
-верхнечелюстные пазухи, носовая полость, глотка, мягкое нёбо; вторым проходом —
-отдельные зубы с номерами FDI, импланты, коронки на имплантах и мосты.
+CBCT (DICOM) → nine anatomical STL surfaces, as a Blender add-on.
+Mandible, upper skull, upper and lower teeth, mandibular canal, maxillary
+sinuses, nasal cavity, pharynx, soft palate; a second pass adds individual
+teeth with FDI numbers, implants, implant crowns and bridges.
 
-Внутреннее имя пакета и исполняемого файла — `dental9`: пользователь его не
-видит, бренд — **OdentAI**.
+The internal package and executable are called `dental9`. Users never see
+that name; the brand is **OdentAI**.
 
 ```
-dental9/          конвейер: чтение, инференс, меши, командная строка (-> dental9.exe)
-addon/            аддон Блендера (код панели; бинарник и веса докладывает упаковка)
-scripts/          экспорт весов, упаковка zip, оценка качества, тест форм ввода
-configs/          запасной dental9.json (параметры предобработки из nnUNet plans)
-docs/             картинки палитры и вида
-models/           веса .onnx + .json рядом (в git не лежат, см. SHA256.txt)
-dental9.spec      сборка PyInstaller (onedir)
-build_windows.bat сборка под Windows целиком: окружение, exe, проверка, zip
+dental9/          the pipeline: reading, inference, meshes, command line (-> dental9.exe)
+addon/            the Blender add-on (panel code; packing adds the binary and weights)
+scripts/          weight export, zip packing, accuracy evaluation, input-format test
+configs/          fallback dental9.json (preprocessing parameters from the nnU-Net plans)
+docs/             palette and viewport images
+models/           .onnx weights + .json next to them (not in git, see SHA256.txt)
+dental9.spec      PyInstaller build (onedir)
+build_windows.bat the whole Windows build: environment, exe, check, zip
 ```
 
-Для агентов (Claude Code, Codex и т.п.) — [AGENTS.md](AGENTS.md).
+For coding agents (Claude Code, Codex and the like): [AGENTS.md](AGENTS.md).
 
-## Быстро
+## Quick start
 
-Windows, двойным щелчком (подробно — `ЧТО_ЗАПУСКАТЬ.txt`):
+Windows, by double-click (details in `ЧТО_ЗАПУСКАТЬ.txt`):
 
 ```bat
 build_windows.bat        :: -> dist\dental9_addon_windows.zip
 ```
 
-То же по шагам, без окна с `pause`:
+The same step by step, without the window that ends in `pause`:
 
 ```bat
 .venv\Scripts\python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec
@@ -37,23 +37,24 @@ build_windows.bat        :: -> dist\dental9_addon_windows.zip
     --teeth-model models\teeth_fdi.onnx --out dist\OdentAI.zip
 ```
 
-Linux: `bash build_linux.sh`, затем `python3 scripts/pack_addon.py`.
+Linux: `bash build_linux.sh`, then `python3 scripts/pack_addon.py`.
 
-В Блендере: Edit → Preferences → Add-ons → Install → выбрать zip.
-Панель появится в 3D-виде по клавише N, вкладка **OdentAI**.
+In Blender: Edit → Preferences → Add-ons → Install → pick the zip.
+The panel appears in the 3D view under the N key, **OdentAI** tab.
 
-## Синхронизация папки для Windows
+## Syncing the Windows build folder
 
-Папка для сборки на HDD (`/media/ilya/HDD/WORK/dental9_build_windows`)
-обновляется `rsync` **без `--delete`** и без удаления чего-либо руками.
-Там появляются файлы, созданные на Windows — `.venv`, `build`, `dist` с
-собранным `dental9.exe`, — и с Linux они выглядят как мусор от нашей же
-сборки. 2026-09-11 так была удалена готовая Windows-сборка. Удалять там можно
-только по прямой команде пользователя.
+The build folder on the HDD (`/media/ilya/HDD/WORK/dental9_build_windows`) is
+updated with `rsync` **without `--delete`**, and nothing in it is deleted by
+hand. Files created on Windows appear there — `.venv`, `build`, `dist` with
+the built `dental9.exe` — and from Linux they look like leftovers of our own
+build. On 2026-09-11 a finished Windows build was deleted that way. Delete
+anything there only on the user's explicit request.
 
-## Как поменять веса
+## Replacing the weights
 
-Модель лежит **отдельным файлом**, а не внутри бинарника, ровно ради этого.
+The model ships as a **separate file**, not inside the binary, precisely for
+this.
 
 ```bash
 python3 scripts/export_onnx.py \
@@ -62,312 +63,331 @@ python3 scripts/export_onnx.py \
     --out models/dental9.onnx
 ```
 
-Получается два файла: `dental9.onnx` и `dental9.json` (окно нормализации, шаг,
-размер тайла, номер эпохи). Дальше — любой из трёх путей:
+This produces two files: `dental9.onnx` and `dental9.json` (normalisation
+window, spacing, tile size, epoch). Then any of three ways:
 
-1. положить оба поверх старых в `<аддон>/bin/dental9/`;
-2. указать путь к новому `.onnx` в настройках аддона — там же, где выбор
-   устройства;
-3. пересобрать zip: `pack_addon.py --model <путь к новому .onnx>`.
+1. drop both over the old ones in `<add-on>/bin/dental9/`;
+2. set the path to the new `.onnx` in the add-on preferences, next to the
+   device choice;
+3. rebuild the zip: `pack_addon.py --model <path to the new .onnx>`.
 
-**Оба файла меняются вместе.** В `.json` записано окно нормализации и шаг сетки;
-подсунуть новые веса со старым `.json` — получить правдоподобный и неверный
-результат, без единой ошибки в логе.
+**The two files always change together.** The `.json` holds the normalisation
+window and the grid spacing; new weights with an old `.json` give a plausible
+and wrong result, without a single error in the log.
 
-Контрольные суммы поставляемых весов — в `SHA256.txt`.
+Checksums of the shipped weights are in `SHA256.txt`.
 
-## Область счёта: превью кости и куб (с 1.0.1)
+## Region to compute: bone preview and crop box (since 1.0.1)
 
-Большое поле обзора (200 мм и больше) — это гигабайты памяти и в разы
-дольше, а челюсти редко занимают больше трети кадра. Поэтому в панели есть
-блок **Region**:
+A large field of view (200 mm and more) means gigabytes of memory and many
+times the run time, while the jaws rarely fill more than a third of the
+frame. Hence the **Region** block in the panel:
 
-1. **Bone preview** — быстрая поверхность кости **без нейросети**, за
-   1–5 секунд: сглаживание, сетка 1 мм, порог по двухпороговому Otsu
-   (воздух / мягкие ткани / кость), считается на каждом снимке заново —
-   КЛКТ не калибрована, фиксированный порог в HU не годится. Вокруг кости
-   ставится куб.
-2. Куб правится **стрелками на гранях** (гизмо Блендера: каждая двигает только
-   свою стенку, противоположная стоит), **кольцо** в центре двигает куб целиком,
-   размеры в мм подписаны прямо во вьюпорте (оверлей через `gpu`/`blf`). Точно —
-   полями Centre / Size в панели. Стрелки работают в Object Mode.
-3. **Segment** с галкой **Only inside the box** передаёт воркеру
-   `--crop X0 Y0 Z0 X1 Y1 Z1` (мм, координаты пациента — та же система, что у
-   STL). Снимок обрезается до ресэмплинга, меши ложатся на свои места,
-   `labels.nii.gz` пишется на полную исходную сетку (вне куба нули).
+1. **Bone preview** — a quick bone surface **without the network**, in 1–5
+   seconds: smoothing, a 1 mm grid, and a threshold from two-level Otsu
+   (air / soft tissue / bone), computed per scan. CBCT is not calibrated, so
+   a fixed HU threshold does not work. A box is placed around the bone.
+2. The box is edited with **arrows on its walls** (Blender gizmos: each moves
+   only its own wall, the opposite one stays put); the **ring** in the middle
+   moves the whole box; sizes in mm are drawn in the viewport (a `gpu`/`blf`
+   overlay). For exact values, use the Centre / Size fields in the panel. The
+   arrows work in Object Mode.
+3. **Segment** with **Only inside the box** passes the worker
+   `--crop X0 Y0 Z0 X1 Y1 Z1` (mm, patient coordinates — the same frame as
+   the STL files). The scan is cropped before resampling, the meshes land in
+   place, and `labels.nii.gz` is written on the full original grid (zeros
+   outside the box).
 
-Командная строка: `dental9 <скан> -o <папка> --preview` → `preview.stl` +
-`preview.json` (границы кадра, порог).
+Command line: `dental9 <scan> -o <folder> --preview` → `preview.stl` +
+`preview.json` (frame bounds, threshold).
 
-Куб намеренно **не дочерний** к превью: у дочернего объекта Блендер рисует
-пунктир связи через весь куб. Координаты куба читаются в системе превью,
-а без превью — в мировой.
+The box is deliberately **not** a child of the preview: Blender draws a
+dashed relationship line from a child to its parent, right across the box.
+The box is read in the preview's frame, or in world space when there is no
+preview.
 
-## Отдельные зубы по номерам (галочка «Separate teeth»)
+## Individual numbered teeth ("Separate teeth")
 
-Второй проход поверх основного, проект `~/precise_teeth`. По маскам Upper/Lower
-Teeth берётся bbox дуги + 5 мм, и в этом кропе сеть зубов по номерам видит всю
-дугу в одном тайле. Геометрия зуба остаётся от dental9, второй проход даёт
-границы между соседями и номера FDI; импланты, коронки на имплантах и мосты —
-целиком из второго прохода (dental9 считает их зубами).
+A second pass on top of the main one, project `~/precise_teeth`. The Upper /
+Lower Teeth masks give the arch bounding box + 5 mm, and inside that crop the
+numbering network sees the whole arch in a single tile. Tooth geometry stays
+from dental9; the second pass supplies the boundaries between neighbours and
+the FDI numbers. Implants, implant crowns and bridges come entirely from the
+second pass (dental9 counts them as teeth).
 
 ```bash
-dental9 <скан> -o <куда> --separate-teeth [--teeth-model <teeth_fdi.onnx>]
+dental9 <scan> -o <out> --separate-teeth [--teeth-model <teeth_fdi.onnx>]
 ```
 
-Выход — `teeth/tooth_11.stl … tooth_48.stl`, `teeth/implant.stl`,
-`teeth/implant_crown.stl`, `teeth/bridge.stl`, в `report.json` — раздел
-`teeth`. В Блендере они ложатся в подколлекцию **Teeth** объектами
-«Tooth 11» … Веса — `teeth_fdi.onnx` + `teeth_fdi.json` рядом с `dental9.onnx`,
-делает их тот же `export_onnx.py` (делитель тайла у этой сети 32×32×32, скрипт
-берёт его из plans). Тайл 128×192×224, откат по памяти на 3/4 и 1/2.
+Output: `teeth/tooth_11.stl … tooth_48.stl`, `teeth/implant.stl`,
+`teeth/implant_crown.stl`, `teeth/bridge.stl`, and a `teeth` section in
+`report.json`. In Blender they go into a **Teeth** sub-collection as objects
+"Tooth 11" … The weights are `teeth_fdi.onnx` + `teeth_fdi.json` next to
+`dental9.onnx`, made by the same `export_onnx.py` (this network's tile
+divisor is 32×32×32; the script reads it from the plans). Tile 128×192×224,
+memory fallback to 3/4 and 1/2.
 
-Замер на 20 отложенных кейсах DentVoxel (аппарат NewTom, сеть его не видела),
-против ручной разметки, боевой ONNX-конвейер: **Dice по зубу 0.966, номер
-верен у 99.1 %** (561 из 566), пропущенных и лишних нет. Цена — около 20 с на
-GPU (два кропа + 30 STL). Проверено headless в Blender 5.2: zip ставится, обе
-модели находятся, коллекция Teeth с объектами «Tooth 11»… появляется.
+Measured on 20 held-out DentVoxel cases (NewTom scanner, never seen by the
+network), against manual labels, with the production ONNX pipeline: **per-tooth
+Dice 0.966, number correct for 99.1 %** (561 of 566), none missed or extra.
+The cost is about 20 s on a GPU (two crops + 30 STL). Checked headless in
+Blender 5.2: the zip installs, both models are found, the Teeth collection
+with "Tooth 11"… appears.
 
-## Что можно подать на вход
+## Accepted input
 
-Проверяется тестом `scripts/test_inputs.py` — 13 форм ввода, данные для
-проверки он делает сам, снимки пациентов не нужны.
+Covered by `scripts/test_inputs.py` — 13 input forms; the test makes its own
+data, no patient scans needed.
 
-| подаём | как читается |
+| input | how it is read |
 |---|---|
-| папку со срезами DICOM | берётся **самая длинная** серия: рядом часто лежат обзорные и скриншоты |
-| папку с вложенными выгрузками | серия ищется рекурсивно, файлы бывают без расширений (`IM000001`) |
-| папку с одним многокадровым `.dcm` | читается файлом напрямую |
-| один многокадровый `.dcm` | так же |
-| один срез из серии | поднимаемся к папке и читаем серию целиком |
-| `.zip` архив | распаковывается во временную папку |
-| папку с архивом внутри | так же |
-| `.nii.gz`, `.mha`, `.nrrd`, `.mhd` | напрямую |
+| a folder of DICOM slices | the **longest** series is taken: scouts and screenshots often sit next to it |
+| a folder of nested exports | the series is searched recursively; files may have no extension (`IM000001`) |
+| a folder with one multi-frame `.dcm` | the file is read directly |
+| a single multi-frame `.dcm` | likewise |
+| one slice of a series | go up to the folder and read the whole series |
+| a `.zip` archive | unpacked into a temporary folder |
+| a folder with an archive inside | likewise |
+| `.nii.gz`, `.mha`, `.nrrd`, `.mhd` | directly |
 
-Две ловушки, на которых это ломалось:
+Two traps this used to fail on:
 
-- **Многокадровый `.dcm` через `ImageSeriesReader` приходит как 4D** `(x, y, z, 1)`,
-  и `DICOMOrient` на 4D не работает вовсе: «Pixel type … is not supported in 4D».
-  Падает на первом же шаге. Вырожденная ось снимается `Extract`.
-- **Один срез, поданный как том**, читается молча и даёт осмысленный на вид
-  мусор. Поэтому том толщиной в один срез — повод подняться к папке, а не
-  считать.
+- **A multi-frame `.dcm` through `ImageSeriesReader` arrives as 4D**
+  `(x, y, z, 1)`, and `DICOMOrient` does not work on 4D at all: "Pixel type …
+  is not supported in 4D". It fails at the very first step. The degenerate
+  axis is removed with `Extract`.
+- **A single slice passed as a volume** is read silently and gives
+  plausible-looking garbage. So a one-slice-thick volume is a reason to go up
+  to the folder, not to compute.
 
-Разрешение любое: снимок приводится к 0.3 мм с сохранением физического кадра,
-анизотропный шаг тоже. Но шаг вне **0.04–1.2 мм** — отказ сразу: это испорченные
-метаданные, а весь конвейер работает в миллиметрах, и меш уехал бы по масштабу.
-Ловилось на выгрузке Sirona, где стоял шаг 1.0 мм вместо 0.15.
+Any resolution works: the scan is resampled to 0.3 mm keeping its physical
+frame, anisotropic spacing included. But a spacing outside **0.04–1.2 mm** is
+refused at once: that is broken metadata, and since the whole pipeline works
+in millimetres the mesh would come out at the wrong scale. Caught on a Sirona
+export that claimed 1.0 mm instead of 0.15.
 
-Перед счётом проверяется и память: буфер разметки это десять классов на весь
-объём, и если он не влезает в свободную память, лучше честная ошибка, чем
-своп и зависшая машина. С 1.0.1 в лог пишется и оценка **пика** памяти: пик не
-буфер, а момент построения знаковых полей (по полю float32 на каждый класс,
-пока буфер ещё жив) плюс ~2 ГБ самой сессии onnxruntime. На кадре 367³ оценка
-сошлась с замером в пределах 0.1 ГБ. Кадр 200 мм (669³) — около 19 ГБ: на
-ноутбуке с 16 ГБ это своп, лечится кубом.
+Memory is checked before computing: the label buffer is ten classes over the
+whole volume, and if it does not fit into free memory, an honest error beats
+swapping and a frozen machine. Since 1.0.1 the log also shows an estimate of
+the **peak**: the peak is not the buffer but the moment the signed fields are
+built (one float32 field per class while the buffer is still alive), plus
+~2 GB for the onnxruntime session itself. On a 367³ grid the estimate matched
+the measurement within 0.1 GB. A 200 mm frame (669³) needs about 19 GB — on a
+16 GB laptop that means swapping; the crop box fixes it.
 
-**Обязательным второй проход по каналу делать нельзя** — проверено 2026-09-16
-на четырёх снимках клиники со здоровым каналом: принудительный второй проход
-снизил совпадение с DentalSegmentator с 0.871 до 0.858, хуже в трёх из четырёх,
-а на одном разломал канал, спас только откат. Подгонка яркостей — лекарство от
-конкретной болезни, здоровому она вредит. Флаг `--canal-refine-always` есть
-только для таких проверок.
+**The second canal pass must not be made mandatory** — checked on 2026-09-16
+on four clinic scans with a healthy canal: a forced second pass lowered the
+agreement with DentalSegmentator from 0.871 to 0.858, worse on three of four,
+and on one it broke the canal; only the rollback saved it. Intensity matching
+cures one specific illness and harms a healthy scan. The
+`--canal-refine-always` flag exists only for such checks.
 
-## Точность: сверено с ручной разметкой
+## Accuracy against manual labels
 
-20 отложенных кейсов DentVoxel, ручная разметка, те же веса (эпоха 475):
+20 held-out DentVoxel cases, manual labels, the same weights (epoch 475):
 
 | | Dice |
 |---|---|
-| наш ONNX-конвейер, fp32 | **0.9619** |
-| наш ONNX-конвейер, fp16 | **0.9613** |
-| сам nnU-Net (`nnUNetv2_predict`) | 0.9610 |
+| our ONNX pipeline, fp32 | **0.9619** |
+| our ONNX pipeline, fp16 | **0.9613** |
+| nnU-Net itself (`nnUNetv2_predict`) | 0.9610 |
 
-Перенос в поставку не теряет ничего. Половинная точность — тоже: она вдвое
-меньше файл (283 МБ против 566) и на четверть быстрее, а с nnU-Net сходится
-даже точнее fp32 (0.995 против 0.976 по вокселям) — nnU-Net и сам считает в
-half. Поэтому **fp16 стоит по умолчанию** в `export_onnx.py`.
+Moving to the delivery loses nothing. Half precision neither: it halves the
+file (283 MB instead of 566), runs a quarter faster, and agrees with nnU-Net
+even better than fp32 (0.995 against 0.976 voxel-wise) — nnU-Net itself
+computes in half. That is why **fp16 is the default** in `export_onnx.py`.
 
-## Где считает
+## Where it computes
 
-| устройство | как включить | замер на кадре 100 мм (334³) |
+| device | how to enable | measured on a 100 mm frame (334³) |
 |---|---|---|
-| CUDA, RTX 4090 | `--device cuda`, сборка с `onnxruntime-gpu` | **10 с** инференс, 18 с весь путь (fp16) |
-| DirectML, RTX 4090 | `--device dml`, сборка с `onnxruntime-directml` | тайл 160×320×320 — 0.8–1.0 с, кадр 367³ — 63 с весь путь |
-| процессор | `--device cpu` | **384 с** — в 20 раз дольше |
+| CUDA, RTX 4090 | `--device cuda`, build with `onnxruntime-gpu` | **10 s** inference, 18 s end to end (fp16) |
+| DirectML, RTX 4090 | `--device dml`, build with `onnxruntime-directml` | 160×320×320 tile in 0.8–1.0 s; a 367³ frame in 63 s end to end |
+| CPU | `--device cpu` | **384 s** — 20 times slower |
 
-Тайл подбирается сам: пробуем 160×320×320, при нехватке видеопамяти
-откатываемся на 128×256×256, потом 96×192×192 и 64×128×128. Сеть полностью
-свёрточная, поэтому веса для всех случаев одни и те же — отдельная модель под
-слабую карту не нужна. Цена малого тайла замерена: 0.002–0.007 Dice на всех
-классах, кроме носовой полости (0.920 → 0.881).
+The tile is chosen automatically: 160×320×320 first, and when video memory
+runs out it falls back to 128×256×256, then 96×192×192 and 64×128×128. The
+network is fully convolutional, so the same weights serve every case — no
+separate model for weak cards. The price of a small tile is measured:
+0.002–0.007 Dice on every class except the nasal cavity (0.920 → 0.881).
 
-**Тайл 160×320×320 под DirectML занимает около 7 ГБ видеопамяти** (замер
-2026-09-29 на RTX 4090: 8.6 ГБ занято при 1.6 ГБ фона). На 8-гиговых картах
-(ноутбучная RTX 2070 Max-Q) это впритык: первый тайл проходит, второй падает.
-Откат на меньший тайл срабатывает не только на тексте «out of memory», но и
-на HRESULT (`8007000E`, `887A0004`), а при потере устройства (`887A0005/6/7`,
-сброс драйвера по TDR) сессия пересоздаётся (`infer.SessionRef`) и счёт идёт
-дальше тайлом поменьше.
+**A 160×320×320 tile takes about 7 GB of video memory under DirectML**
+(measured 2026-09-29 on an RTX 4090: 8.6 GB in use over a 1.6 GB baseline).
+On 8 GB cards (a laptop RTX 2070 Max-Q) that is on the edge: the first tile
+passes, the second fails. The fallback to a smaller tile fires not only on
+"out of memory" text but also on the HRESULTs (`8007000E`, `887A0004`), and
+on a lost device (`887A0005/6/7`, a driver reset by TDR) the session is
+recreated (`infer.SessionRef`) and the run continues with a smaller tile.
 
-**Linux-сборка самодостаточна: CUDA и cuDNN лежат внутри**, от машины нужен
-только драйвер NVIDIA не старше 525 (CUDA 12). Цена — 2.5 ГБ библиотек,
-zip аддона выходит ~3 ГБ. Так стало 2026-09-13 после того, как на чужой
-Ubuntu провайдер не поднялся: «Unable to load libcudnn_graph.so.9». Заодно
-выяснилось, что cufft, curand и cublasLt, ранее выброшенные как лишние, —
-прямые зависимости провайдера; на машине сборки их подхватывала системная
-CUDA, и тест был нечестным. Под Windows ничего этого нет: DirectML — одна
-библиотека на 19 МБ.
+**The Linux build is self-contained: CUDA and cuDNN are bundled**; the machine
+only needs an NVIDIA driver 525 or newer (CUDA 12). The price is 2.5 GB of
+libraries, and the add-on zip comes to ~3 GB. It became so on 2026-09-13 after
+the provider failed to load on someone else's Ubuntu: "Unable to load
+libcudnn_graph.so.9". It also turned out that cufft, curand and cublasLt,
+previously dropped as unneeded, are direct dependencies of the provider; on
+the build machine the system CUDA satisfied them, and the test was not honest.
+Windows needs none of this: DirectML is one 19 MB library.
 
-Разметка на процессоре и на видеокарте совпадает на 99.993% вокселей —
-расхождение чисто арифметическое.
+CPU and GPU labels agree on 99.993 % of voxels — the difference is purely
+arithmetic.
 
-## Командная строка (её и вызывает аддон)
+## Command line (what the add-on calls)
 
 ```bash
-dental9 <папка с DICOM> -o <куда> [-c mandible upper_teeth ...] [--device auto]
+dental9 <DICOM folder> -o <out> [-c mandible upper_teeth ...] [--device auto]
         [--taubin 20] [--decimate 0.5] [--labels] [--no-stl]
         [--crop X0 Y0 Z0 X1 Y1 Z1] [--separate-teeth]
-dental9 <скан> -o <куда> --preview          # кость порогом, без сети
+dental9 <scan> -o <out> --preview          # bone by threshold, no network
 dental9 --diagnose [-m dental9.onnx] [--json]
 ```
 
-## Размер поставки
+## Delivery size
 
-Мерено, а не прикинуто:
+Measured, not estimated:
 
-| часть (распакованная) | Linux (CUDA) | Windows (DirectML) |
+| part (unpacked) | Linux (CUDA) | Windows (DirectML) |
 |---|---|---|
-| onnxruntime | 438 МБ | 70 МБ |
-| библиотеки CUDA | 108 МБ | нет |
-| VTK | 266 МБ | 307 МБ |
-| SimpleITK | 260 МБ | 109 МБ |
-| numpy и питон | ~60 МБ | ~60 МБ |
-| веса `.onnx` fp16 (обе модели) | 488 МБ | 488 МБ |
-| библиотеки CUDA + cuDNN | 2.5 ГБ | нет |
-| **zip аддона** | **~3 ГБ** | **583 МБ** (замер, 1.0.1) |
+| onnxruntime | 438 MB | 70 MB |
+| CUDA libraries | 108 MB | none |
+| VTK | 266 MB | 307 MB |
+| SimpleITK | 260 MB | 109 MB |
+| numpy and Python | ~60 MB | ~60 MB |
+| `.onnx` weights, fp16 (both models) | 488 MB | 488 MB |
+| CUDA + cuDNN libraries | 2.5 GB | none |
+| **add-on zip** | **~3 GB** | **583 MB** (measured, 1.0.1) |
 
-Из библиотек CUDA собранными остаются только те, что реально нужны: `cufft`,
-`curand` и `cublasLt` выброшены (БПФ, генератор случайных чисел и MatMul
-свёрточной сети ни к чему) — минус 870 МБ, результат совпадает воксель в
-воксель.
+Of the CUDA libraries only the ones actually needed stay in the build:
+`cufft`, `curand` and `cublasLt` are dropped (a convolutional network has no
+use for FFT, random numbers or that MatMul) — 870 MB less, results identical
+voxel for voxel.
 
-VTK ужать не вышло: замыкание зависимостей от `vtkFlyingEdges3D` и
-`vtkWindowedSincPolyDataFilter` тянет и `libvtkRenderingCore`, лишнего в
-сборке нет (проверено ldd-замыканием). `strip` применять **нельзя** — он ломает
-предсобранный OpenBLAS внутри numpy, и падает импорт самого numpy.
+VTK could not be trimmed: the dependency closure of `vtkFlyingEdges3D` and
+`vtkWindowedSincPolyDataFilter` pulls in `libvtkRenderingCore` as well; there
+is nothing extra in the build (checked with an ldd closure). **Do not use
+`strip`** — it breaks the prebuilt OpenBLAS inside numpy, and importing numpy
+itself fails.
 
-**Консоль exe на Windows — UTF-8 принудительно.** Поток stdout у процесса,
-запущенного через канал, берёт кодовую страницу локали (cp1252 и т.п.), и
-первая же буква вне её в пути — реальный случай: польское «ł» в имени папки —
-роняет запуск с `'charmap' codec can't encode character`. `cli.main()`
-переводит потоки в UTF-8, аддон читает канал как UTF-8. Это отдельная беда от
-не-ASCII путей ниже: там падают библиотеки при открытии файла, тут — сама
-печать имени.
+**The exe console on Windows is forced to UTF-8.** A process started through a
+pipe gets stdout in the locale code page (cp1252 and the like), and the first
+letter outside it in a path — a real case: a Polish "ł" in a folder name —
+kills the run with `'charmap' codec can't encode character`. `cli.main()`
+switches the streams to UTF-8, and the add-on reads the pipe as UTF-8. This is
+a separate problem from the non-ASCII paths below: there the libraries fail to
+open the file, here it is printing the name.
 
-**И обратная беда — сообщения самого DirectML.** На не-английской Windows
-системный текст ошибки приходит в кодовой странице (cp1251 и т.п.), pybind11
-декодирует его как UTF-8 и падает — вместо ошибки видно
-`'utf-8' codec can't decode byte 0xc3`. Так было 2026-09-29 на ноутбуке с
-RTX 2070 Max-Q. `infer.readable_error` достаёт исходные байты из
-`UnicodeDecodeError` и декодирует их `mbcs`.
+**And the reverse problem — DirectML's own messages.** On a non-English
+Windows the system error text arrives in the code page (cp1251 and the like),
+pybind11 decodes it as UTF-8 and fails — instead of the error you see
+`'utf-8' codec can't decode byte 0xc3`. That happened on 2026-09-29 on a
+laptop with an RTX 2070 Max-Q. `infer.readable_error` takes the original bytes
+out of the `UnicodeDecodeError` and decodes them with `mbcs`.
 
-## Не-ASCII пути: кириллица, китайский, арабский, эмодзи
+## Non-ASCII paths: Cyrillic, Chinese, Arabic, emoji
 
-Проверено 2026-09-21 на Linux с боевыми весами: папка «病人 王伟 🦷 مريض»,
-подпапка «КТ 2026-09 · серия», файлы `王伟_مريض_0001.dcm`, архив
-«архив 王伟.zip» с такими же именами внутри, выходная папка «результат 王伟 🦷»
-— STL и report.json на месте, объём побайтно совпадает с чтением оригинала.
+Checked on 2026-09-21 on Linux with the production weights: a folder
+"病人 王伟 🦷 مريض", a subfolder "КТ 2026-09 · серия", files `王伟_مريض_0001.dcm`,
+an archive "архив 王伟.zip" with the same names inside, an output folder
+"результат 王伟 🦷" — the STL files and report.json are in place, and the volume
+matches a read of the original byte for byte.
 
-На Windows риск настоящий и не в Python: ITK/GDCM и VTK открывают файлы
-«узким» `fopen` через кодовую страницу системы, и GDCM сканирует папку
-узкими API. Защита в `dental9/winpath.py`:
+On Windows the risk is real and not in Python: ITK/GDCM and VTK open files
+with the "narrow" `fopen` through the system code page, and GDCM scans the
+folder with narrow APIs. The defence is in `dental9/winpath.py`:
 
-- короткое имя 8.3 (ASCII, ничего не копируется) — только когда не-ASCII
-  сам путь до снимка, а **внутри** дерева все имена ASCII;
-- иначе — копия в ASCII-папку с **переименованием** каждого файла и подпапки
-  (`d001/f000001.dcm`): серии DICOM имена файлов безразличны. Короткое имя
-  здесь не спасает: оно чинит верх пути, а `王伟_0001.dcm` внутри — нет;
-- архивы распаковываются так же, с переименованием — это заодно закрывает
-  имена в локальной кодовой странице без флага UTF-8 (архив из китайского
-  Проводника) и `../` в именах;
-- выход пишется в ASCII-папку и переносится в настоящую;
-- временная ASCII-папка: `%TEMP%` → `%PUBLIC%\OdentAI\tmp` → `C:\OdentAI_tmp`,
-  потому что у пользователя «王伟» `%TEMP%` лежит в его профиле;
-- путь к модели проходит ту же защиту (веса лежат в профиле пользователя);
-- потоки exe в UTF-8 (см. выше), аддон читает канал как UTF-8, а эхо в консоль
-  Блендера не может уронить запуск.
+- an 8.3 short name (ASCII, nothing copied) — only when the path to the scan
+  is non-ASCII but all names **inside** the tree are ASCII;
+- otherwise, a copy into an ASCII folder with **every file and subfolder
+  renamed** (`d001/f000001.dcm`): a DICOM series does not care about file
+  names. A short name does not help here: it fixes the top of the path, not
+  `王伟_0001.dcm` inside;
+- archives are unpacked the same way, with renaming — which also covers names
+  in a local code page without the UTF-8 flag (an archive from a Chinese
+  Explorer) and `../` in names;
+- output is written into an ASCII folder and moved into the real one;
+- the temporary ASCII folder: `%TEMP%` → `%PUBLIC%\OdentAI\tmp` →
+  `C:\OdentAI_tmp`, because for a user called "王伟" `%TEMP%` lies in their
+  profile;
+- the model path goes through the same defence (the weights live in the
+  user's profile);
+- the exe streams are UTF-8 (see above), the add-on reads the pipe as UTF-8,
+  and echoing into Blender's console cannot bring the run down.
 
-Ветка Windows отлажена симуляцией худшего случая (нет 8.3-имён, `%TEMP%`
-не-ASCII). Настоящий прогон на Windows с китайской или русской папкой —
-обязательная проверка перед раздачей.
+The Windows branch was debugged by simulating the worst case (no 8.3 names, a
+non-ASCII `%TEMP%`). A real run on Windows with a Chinese or Russian folder is
+a mandatory check before distribution.
 
-## Если что-то не работает
+## When something does not work
 
-**Сначала лог.** Полный вывод последнего запуска аддон пишет в
-`%TEMP%\OdentAI\last_run.log` (кнопка с иконкой документа в блоке Hardware).
-В нём: система, процессор, видеокарты с объёмом VRAM и драйвером, версия
-onnxruntime, время первого и самого медленного тайла, свободная RAM / пик
-процесса / занятая VRAM на каждом этапе, при ошибке — номер тайла, на котором
-упало, расшифрованный текст ошибки и traceback. Этот файл и надо присылать.
+**Start with the log.** The add-on writes the full output of the last run to
+`%TEMP%\OdentAI\last_run.log` (the document-icon button in the Hardware
+block). It contains the system, the CPU, the graphics cards with VRAM and
+driver, the onnxruntime version, the time of the first and the slowest tile,
+free RAM / process peak / VRAM in use at each stage, and on failure the tile
+it failed on, the decoded error text and the traceback. This is the file to
+send.
 
-Кнопка **Check system** (панель OdentAI и настройки аддона), в командной строке
-— `dental9 --diagnose`. Она не читает список исполнителей, а поднимает сессию
-и реально считает пробный тайл: список врёт, DirectML и CUDA числятся в сборке,
-но могут не подняться. С 1.0.1 на видеокарте она гоняет ещё и **рабочий** тайл
-160×320×320 и предупреждает, если он не влезает или идёт дольше 1.5 с (рядом с
-2-секундным тайм-аутом драйвера Windows).
+The **Check system** button (OdentAI panel and add-on preferences), or
+`dental9 --diagnose` on the command line. It does not read the provider list;
+it opens a session and actually runs a probe tile — the list lies: DirectML
+and CUDA are listed in the build but may fail to come up. Since 1.0.1 on a
+GPU it also runs the **working** 160×320×320 tile and warns when it does not
+fit or takes longer than 1.5 s (close to Windows' 2-second driver timeout).
 
-Оценка времени считает и сложение тайлов в буфер, а не только сеть: на
-видеокарте это половина всего времени, и оценка «по одной сети» врала вдвое.
+The time estimate includes accumulating tiles into the buffer, not only the
+network: on a GPU that is half of the total, and an estimate "from the network
+alone" was off by a factor of two.
 
-| симптом | причина | что делать |
+| symptom | cause | what to do |
 |---|---|---|
-| считает минутами | видеокарта не задействована | Check system; под Windows обновить драйвер, под Linux поставить `libcudnn9-cuda-12` |
-| «A graphics card is present…» | драйвер или сборка | карта не при чём: обновить драйвер, при DirectML-сборке проверить, что она DirectML |
-| «the graphics card fails even on the smallest tile» | мало видеопамяти или сброс драйвера | обрезать кубом; Compute on = CPU в настройках аддона |
-| «estimated peak RAM … WARNING» | снимок больше свободной памяти | обрезать кубом |
-| «executable missing» | zip распаковался не полностью | переустановить аддон |
-| «model file not found» | веса не доехали | указать путь к `dental9.onnx` в настройках аддона |
-| «There is no dental9.json next to the model» | подменили только веса | эти два файла меняются **вместе** |
-| тайл уменьшился сам | мало видеопамяти | так и задумано; на носовой полости Dice 0.881 против 0.920 |
+| takes minutes | the graphics card is not used | Check system; on Windows update the driver, on Linux install `libcudnn9-cuda-12` |
+| "A graphics card is present…" | driver or build | the hardware is fine: update the driver; for a DirectML build, check that it really is DirectML |
+| "the graphics card fails even on the smallest tile" | too little video memory, or a driver reset | crop with the box; Compute on = CPU in the add-on preferences |
+| "estimated peak RAM … WARNING" | the scan is larger than free memory | crop with the box |
+| "executable missing" | the zip was not fully unpacked | reinstall the add-on |
+| "model file not found" | the weights did not arrive | set the path to `dental9.onnx` in the add-on preferences |
+| "There is no dental9.json next to the model" | only the weights were replaced | these two files change **together** |
+| the tile shrank by itself | too little video memory | by design; nasal cavity Dice 0.881 instead of 0.920 |
 
-## Язык
+## Language
 
-Всё, что видит пользователь — интерфейс аддона, вывод в консоль, подсказки,
-сообщения об ошибках, — по-английски: аддон уедет в клинику. Комментарии и
-docstring в коде тоже английские; README и заметки для сборки — русские.
+Everything the user sees — the add-on UI, console output, tooltips, error
+messages — is in English: the add-on goes to clinics. Code comments and
+docstrings are in English too. The build notes for the Windows machine
+(`ЧТО_ЗАПУСКАТЬ.txt`) are in Russian.
 
-## Что важно не сломать
+## What must not break
 
-- **Ориентация LPS и шаг 0.3 мм** — как на обучении. Не RPI: RPI это конвенция
-  замороженной ветки Dataset002.
-- **Нормализация CT берётся из отпечатка обучающего набора**, а не из самого
-  снимка. КЛКТ не калибрована, нормировать каждый скан по себе — неверно.
-- **Тайл кратен (32, 64, 64)** и не меньше двух делителей по каждой оси: при
-  одном на дне сети остаётся один воксель и падает InstanceNorm.
-- **Поверхности строятся по знаковому полю логитов, а не по бинарной маске.**
-  Граница та же (нуль поля = граница argmax), но положение внутри вокселя
-  берётся из значений, а не округляется до половины вокселя. Ступеньки
-  размером в воксель пропадают, ничего при этом не сглаживая.
-- Сглаживание меша — Тобина (`--taubin`), а не лапласово: лапласово даёт
-  усадку поверхности.
-- **`strip` применять нельзя** — ломает предсобранный OpenBLAS внутри numpy,
-  и падает импорт самого numpy.
-- **Блендер при установке аддона сбрасывает бит исполнения** с бинарника, даже
-  если в zip он записан. Лечится `_ensure_executable` при первом запуске.
-- **Откат по тайлу ловит только нехватку памяти и потерю устройства.** Любую
-  другую ошибку глотать нельзя: результат похуже, который выглядит нормально, —
-  худший исход.
+- **LPS orientation and 0.3 mm spacing** — as in training. Not RPI: RPI is the
+  convention of the frozen Dataset002 branch.
+- **CT normalisation comes from the training set fingerprint**, not from the
+  scan itself. CBCT is not calibrated; normalising each scan on its own is
+  wrong.
+- **The tile is a multiple of (32, 64, 64)** and at least two divisors per
+  axis: with one, a single voxel is left at the bottom of the network and
+  InstanceNorm fails.
+- **Surfaces are built from the signed logit field, not the binary mask.**
+  The boundary is the same (the field's zero is the argmax boundary), but its
+  position inside a voxel comes from the values instead of being rounded to
+  half a voxel. Voxel-sized steps disappear without any smoothing.
+- Mesh smoothing is Taubin (`--taubin`), not Laplacian: Laplacian shrinks the
+  surface.
+- **Do not use `strip`** — it breaks the prebuilt OpenBLAS inside numpy, and
+  importing numpy itself fails.
+- **Blender's installer drops the executable bit** from the binary, even if the
+  zip carries it. `_ensure_executable` fixes it on first launch.
+- **The tile fallback catches only out-of-memory and a lost device.** No other
+  error may be swallowed: a worse result that looks fine is the worst possible
+  outcome.
 
-## Проверено на месте
+## Verified in place
 
-Установка в Blender 5.2 (`--factory-startup`, headless): аддон ставится и
-включается, панель и все девять галок на месте, модель находится, бинарник
-из папки аддона считает кейс за 18 с и отдаёт девять STL. Габариты мешей —
-в миллиметрах и анатомически верные (нижняя челюсть 84 мм при кадре 100 мм).
+Install into Blender 5.2 (`--factory-startup`, headless): the add-on installs
+and enables, the panel and all nine checkboxes are there, the model is found,
+the binary from the add-on folder computes a case in 18 s and returns nine STL
+files. Mesh dimensions are in millimetres and anatomically right (mandible
+84 mm in a 100 mm frame).
 
-1.0.1 (2026-09-29), Blender 5.2 с интерфейсом, настоящие модальные операторы:
-превью → стрелки куба → Segment по кубу → импорт; меши целиком внутри куба,
-противоположная стенка при перетаскивании стоит, ошибка «куб вне снимка»
-приходит понятным текстом со ссылкой на лог.
+1.0.1 (2026-09-29), Blender 5.2 with a window, real modal operators: preview →
+box arrows → Segment inside the box → import; the meshes lie entirely inside
+the box, the opposite wall stays put while dragging, and "box outside the
+scan" arrives as a plain message with a link to the log.
