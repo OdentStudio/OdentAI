@@ -23,7 +23,7 @@ Each archive has a `.sha256` file next to it to check the download.
 4. In the 3D view press **N** and open the **OdentAI** tab.
 5. Press **Check system** once: it shows whether the graphics card is used and how long a scan will take.
 
-Updating from an older version: remove the old add-on first (Preferences → Add-ons → OdentAI Segment → Remove), restart Blender, then install the new zip.
+Updating from an older version: remove the old add-on first (Preferences → Add-ons → OdentAI Segment → Remove), restart Blender, then install the new zip. After 1.0.1 the add-on folder is called `OdentAI` (it was `dental9_addon`), so the two would otherwise sit side by side; the new one refuses to start while the old one is enabled and says so.
 
 ## Requirements
 

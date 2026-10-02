@@ -1621,7 +1621,19 @@ CLASSES_RNA = (Dental9Prefs, Dental9Props, DENTAL9_OT_segment,
                DENTAL9_PT_panel, DENTAL9_PT_about)
 
 
+# The module was called dental9_addon up to 1.0.1. Both register the same
+# operators, panels and Scene.dental9, so with the old one still enabled each
+# would quietly replace the other's classes and break on unregister. Refuse
+# with a message the user can act on instead.
+LEGACY_MODULE = "dental9_addon"
+
+
 def register():
+    if LEGACY_MODULE in bpy.context.preferences.addons:
+        raise RuntimeError(
+            f"An older {BRAND} is still enabled (folder \"{LEGACY_MODULE}\"). "
+            "Remove it in Preferences > Add-ons, restart Blender, then enable "
+            "this one.")
     _load_icons()
     for c in CLASSES_RNA:
         bpy.utils.register_class(c)

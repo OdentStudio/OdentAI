@@ -148,7 +148,7 @@ if defined NOMODEL (
 
 echo.
 echo === DONE ===
-echo Add-on:  %CD%\dist\dental9_addon_windows.zip
+echo Add-on:  %CD%\dist\OdentAI_windows.zip
 echo.
 echo Install: Blender - Edit - Preferences - Add-ons - Install - pick this zip.
 echo The panel appears in the 3D view sidebar ^(N key^), OdentAI tab.

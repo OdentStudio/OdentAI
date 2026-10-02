@@ -54,7 +54,7 @@ jobs:
         run: |
           V=$(python3 - <<'EOF'
           import re
-          s = open("addon/dental9_addon/__init__.py", encoding="utf-8").read()
+          s = open("addon/OdentAI/__init__.py", encoding="utf-8").read()
           print(".".join(re.search(r'"version":\s*\((\d+),\s*(\d+),\s*(\d+)\)', s).groups()))
           EOF
           )
@@ -151,7 +151,7 @@ jobs:
 
       - name: Pack
         run: |
-          rm -rf build addon/dental9_addon/__pycache__
+          rm -rf build addon/OdentAI/__pycache__
           mkdir -p release
           python scripts/pack_addon.py --model models/dental9.onnx \
             --teeth-model models/teeth_fdi.onnx --out "release/$ZIP"

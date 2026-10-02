@@ -48,7 +48,7 @@ build_linux.sh      the same for Linux (exe only)
 Releases are built by GitHub Actions, not on a local machine:
 
 1. Raise `bl_info["version"]` and `VERSION_LABEL` in
-   `addon/dental9_addon/__init__.py`, commit.
+   `addon/OdentAI/__init__.py`, commit.
 2. Tag and push: `git tag v1.0.2 && git push origin v1.0.2`.
 3. The **Release** workflow checks that the tag matches `bl_info`, downloads
    the weights, builds the worker on `windows-2022` (DirectML) and
@@ -85,7 +85,7 @@ grep '  models/' SHA256.txt | sha256sum -c -
 ```
 
 Windows, by double-click — `build_windows.bat` sets up `.venv`, builds the
-exe, runs the hardware check on it and packs `dist\dental9_addon_windows.zip`.
+exe, runs the hardware check on it and packs `dist\OdentAI_windows.zip`.
 If it fails, the last lines of `build_windows.log` are shown. The same step by
 step, without the window that ends in `pause`:
 

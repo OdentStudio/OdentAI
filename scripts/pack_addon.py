@@ -47,12 +47,12 @@ def add_tree(z: zipfile.ZipFile, src: str, prefix: str) -> int:
 def main():
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser()
-    ap.add_argument("--addon", default=os.path.join(here, "addon", "dental9_addon"))
+    ap.add_argument("--addon", default=os.path.join(here, "addon", "OdentAI"))
     ap.add_argument("--dist", default=os.path.join(here, "dist", "dental9"),
                     help="the PyInstaller build folder (onedir)")
     ap.add_argument("--model", default=os.path.join(here, "models", "dental9.onnx"))
     ap.add_argument("--out", default=os.path.join(
-        here, "dist", f"dental9_addon_{PLATFORM}.zip"))
+        here, "dist", f"OdentAI_{PLATFORM}.zip"))
     ap.add_argument("--teeth-model", default=os.path.join(here, "models", "teeth_fdi.onnx"),
                     help="weights of the second pass (FDI tooth numbering); go next to "
                          "the main ones as teeth_fdi.onnx + teeth_fdi.json")
@@ -85,8 +85,12 @@ def main():
     # ZIP_STORED for the weights: onnx is already compressed inside, and
     # spending minutes on deflate for one percent is pointless. Code is compressed.
     with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
-        n_code = add_tree(z, a.addon, "dental9_addon")
-        n_bin = add_tree(z, a.dist, os.path.join("dental9_addon", "bin", "dental9"))
+        # The folder inside the zip is the add-on's module name in Blender
+        # (and its key in the preferences), so it is taken from the source
+        # folder rather than spelled out twice.
+        root = os.path.basename(os.path.normpath(a.addon))
+        n_code = add_tree(z, a.addon, root)
+        n_bin = add_tree(z, a.dist, os.path.join(root, "bin", "dental9"))
         n_model = 0
         if not a.no_model:
             # Inside the bundle the weights are always called dental9.onnx,
@@ -97,7 +101,7 @@ def main():
             if with_teeth:
                 pairs += [(a.teeth_model, "teeth_fdi.onnx"), (tcfg, "teeth_fdi.json")]
             for p, name in pairs:
-                z.write(p, os.path.join("dental9_addon", "bin", "dental9", name),
+                z.write(p, os.path.join(root, "bin", "dental9", name),
                         compress_type=zipfile.ZIP_STORED)
                 n_model += 1
 

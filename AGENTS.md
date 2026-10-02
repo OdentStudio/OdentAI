@@ -14,7 +14,7 @@ classes. Two parts, two processes:
   nnU-Net inference on onnxruntime (DirectML on Windows, CUDA on Linux),
   builds meshes (VTK). PyInstaller turns it into `dist/dental9/dental9(.exe)`.
   Entry point: `cli.py`.
-- **`addon/dental9_addon/__init__.py`** — the Blender add-on, a single file.
+- **`addon/OdentAI/__init__.py`** — the Blender add-on, a single file.
   Nothing heavy runs in Blender's Python: the add-on starts the worker as a
   separate process and reads its stdout, so an onnxruntime crash or running
   out of video memory cannot take the user's session down.
@@ -58,13 +58,13 @@ plus NVIDIA's CUDA/cuDNN wheels (see `build_linux.sh`).
 :: the worker from source, no build
 .venv\Scripts\python -m dental9 <scan> -o <dir> -m models\dental9.onnx [--crop ...]
 .venv\Scripts\python -m dental9 --diagnose -m models\dental9.onnx
-.venv\Scripts\python -m py_compile dental9\*.py addon\dental9_addon\__init__.py
+.venv\Scripts\python -m py_compile dental9\*.py addon\OdentAI\__init__.py
 
 :: the exe (only when dental9/*.py changed), ~1 min, then the smoke test
 .venv\Scripts\python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec
 .venv\Scripts\python scripts\smoke_test.py dist\dental9\dental9.exe models\dental9.onnx
 
-:: the add-on zip; delete addon\dental9_addon\__pycache__ first
+:: the add-on zip; delete addon\OdentAI\__pycache__ first
 .venv\Scripts\python scripts\pack_addon.py --model models\dental9.onnx ^
     --teeth-model models\teeth_fdi.onnx --out dist\OdentAI.zip
 ```
