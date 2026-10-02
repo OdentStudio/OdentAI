@@ -118,6 +118,12 @@ def main(argv=None) -> int:
         print("an input scan and -o are required", file=sys.stderr)
         return 2
 
+    try:
+        from .winpath import sweep_stale
+        sweep_stale()
+    except Exception:                                   # noqa: BLE001
+        pass
+
     if a.preview:
         from .preview import make_preview
         try:

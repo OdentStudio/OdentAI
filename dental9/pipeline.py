@@ -27,6 +27,9 @@ from .classes import CLASSES, Klass
 # both the intensity window and the mesh scale. Caught on a Sirona export that
 # claimed 1.0 mm instead of 0.15 — the field of view came out as "616 mm".
 SANE_SPACING_MM = (0.04, 1.2)
+# Above this the frame cannot be a dental CBCT (the largest are ~260 mm): a
+# hint that the spacing in the file is wrong — 1.0 mm passes the range above.
+MAX_DENTAL_FOV_MM = 300
 # The logit buffer is ten classes over the whole volume. Above this we warn
 # that a lot of RAM is needed; above a share of the available RAM we refuse,
 # otherwise the machine swaps and freezes instead of failing honestly.
@@ -338,8 +341,12 @@ def segment(path: str, outdir: str, opts: Options,
     try:
         return _segment(path, outdir, real_path, real_outdir, opts, log, progress)
     finally:
-        finish_out()
-        cleanup_in()
+        # Nested: a failed move of the output must not leave the staged copy
+        # of the scan behind.
+        try:
+            finish_out()
+        finally:
+            cleanup_in()
 
 
 def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
@@ -374,22 +381,32 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
             f"as {fov} mm. Everything would be computed at the wrong scale.")
     log(f"  field of view {fov[0]}x{fov[1]}x{fov[2]} mm")
 
-    grid = _io.to_training_grid(src, cfg["spacing"])
-    vol = sitk.GetArrayFromImage(grid).astype(np.float32)
-    log(f"  resampled to {cfg['orientation']}, {cfg['spacing']} mm: {vol.shape}")
-
     # The logit buffer scales with the scan, not the tile, and on a large
-    # volume it outweighs everything else put together.
-    buf_gb = vol.size * cfg["num_classes"] * (2 if vol.size > 150_000_000 else 4) / 2**30
+    # volume it outweighs everything else put together. Checked BEFORE
+    # resampling, from the grid size alone: the resampled volume itself takes
+    # gigabytes, and on 2026-10-02 a scan with broken metadata (1 mm voxels,
+    # a 616 mm frame) was resampled to 2053^3 — ~30 GB gone — and only then
+    # refused. On a 16 GB laptop that is a frozen machine, not a message.
+    n_grid = int(np.prod([round(n * v / cfg["spacing"]) for n, v in zip(src.GetSize(), sp)]))
+    buf_gb = n_grid * cfg["num_classes"] * (2 if n_grid > 150_000_000 else 4) / 2**30
     if buf_gb > WARN_BUFFER_GB:
         log(f"  large volume: about {buf_gb:.1f} GB of RAM needed for the "
             "label buffer")
     ram = _free_ram_gb()
     if ram and buf_gb > 0.7 * ram:
+        hint = ""
+        if max(fov) > MAX_DENTAL_FOV_MM:
+            hint = (f" The field of view, {max(fov):.0f} mm, is larger than any "
+                    "dental CBCT: the voxel size written in the file is most "
+                    "likely wrong.")
         raise RuntimeError(
             f"this scan needs about {buf_gb:.1f} GB of RAM for the label buffer, "
             f"and only {ram:.1f} GB is available. Crop the scan to the area of "
-            "interest, or run it on a machine with more memory.")
+            "interest, or run it on a machine with more memory." + hint)
+
+    grid = _io.to_training_grid(src, cfg["spacing"])
+    vol = sitk.GetArrayFromImage(grid).astype(np.float32)
+    log(f"  resampled to {cfg['orientation']}, {cfg['spacing']} mm: {vol.shape}")
     # The label buffer is not the peak: the signed fields for the meshes
     # (one float32 volume per class) are built while it is still alive. Logged
     # so that a run that dies in swap can be told from one that dies on the GPU.

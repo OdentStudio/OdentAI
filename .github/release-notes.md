@@ -27,7 +27,7 @@ Updating from an older version: remove the old add-on first (Preferences → Add
 
 ## Requirements
 
-- **Blender** 3.0 or newer (tested on 5.2).
+- **Blender** 3.3 or newer (tested on 3.3, 3.6, 4.5, 5.0 and 5.2).
 - **Windows:** any graphics card with an up-to-date driver (NVIDIA, AMD or Intel, via DirectML). No CUDA needed. Without a usable card it runs on the CPU, about 15–20× slower.
 - **Linux:** an NVIDIA card with driver **525 or newer**; CUDA and cuDNN are bundled. Without one it runs on the CPU.
 - **Memory:** a 100 mm field of view needs about 6 GB of RAM and ~7 GB of video memory for the full-size tile (a smaller card automatically gets smaller tiles). A 200 mm field needs about 19 GB of RAM — use the crop box (below).
@@ -36,7 +36,7 @@ Updating from an older version: remove the old add-on first (Preferences → Add
 
 1. **Scan** — a DICOM folder (nested exports are fine), a single `.dcm`, a `.zip`, or a `.nii.gz` / `.mha` / `.nrrd` file.
 2. Optional, recommended for large scans — **Region → Bone preview**: a quick bone surface in a few seconds, with a box around it. Drag the **coloured arrows** to move each wall of the box, the **orange ring** to move the whole box. With **Only inside the box** ticked, only that region is computed — much faster and lighter on memory.
-3. Choose the **classes**, optionally **Separate teeth (FDI numbers)**, and press **Segment**.
+3. Choose the **classes**, optionally **Separate teeth (FDI numbers)**, and press **Segment**. A bar at the top of the panel shows the stage and the time; **Stop** (or Esc in the 3D view) ends the run. The results go into the **OdentAI** collection, the bone preview and the box into **OdentAI › Region**.
 
 ## If something goes wrong
 

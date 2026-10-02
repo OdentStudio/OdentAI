@@ -141,6 +141,46 @@ def extract_zip_ascii(zip_path: str, dst: str) -> int:
     return n
 
 
+# A staged folder left behind is garbage after this long: no run takes hours,
+# and two Blender sessions on one machine never need each other's copies.
+STALE_HOURS = 12
+
+
+def sweep_stale(max_age_hours: float = STALE_HOURS) -> int:
+    """Remove our own staging folders that a killed run left behind.
+
+    The add-on stops a run by killing the process (Esc, Blender closed), and a
+    killed process runs no `finally`: a staged copy of the scan, hundreds of
+    megabytes, stays in the temp folder (2026-10-02). Best effort: called at
+    start, must never fail a run.
+    """
+    import time
+    t = tempfile.gettempdir()
+    roots = {t}
+    if sys.platform == "win32":
+        roots.add(_short_name(t) or t)
+        roots.add(os.path.join(os.environ.get("PUBLIC", r"C:\Users\Public"), "OdentAI", "tmp"))
+        roots.add(os.path.join(os.environ.get("SystemDrive", "C:") + os.sep, "OdentAI_tmp"))
+    limit = time.time() - max_age_hours * 3600
+    n = 0
+    for root in roots:
+        try:
+            names = os.listdir(root)
+        except OSError:
+            continue
+        for name in names:
+            if not name.startswith(("odentai_", "dental9_")):
+                continue
+            p = os.path.join(root, name)
+            try:
+                if os.path.isdir(p) and os.path.getmtime(p) < limit:
+                    shutil.rmtree(p, ignore_errors=True)
+                    n += 1
+            except OSError:
+                continue
+    return n
+
+
 def temp_dir() -> str:
     """A fresh temporary folder that native libraries can open: ASCII on
     Windows, the ordinary one elsewhere. The caller removes it."""
@@ -179,7 +219,22 @@ def readable(path: str) -> Tuple[str, Callable[[], None]]:
 def writable(outdir: str) -> Tuple[str, Callable[[], None]]:
     """A folder the native writers can write into, plus a finisher that moves
     the result into the real folder. Same rules as `readable`."""
-    os.makedirs(outdir, exist_ok=True)
+    # Checked before minutes of computing, not at the end, and in words the
+    # user can act on: the raw OSError arrives in the system language
+    # ("[WinError 5] Отказано в доступе", 2026-10-02).
+    # Not tempfile: on Windows it retries a denied create for as long as
+    # os.access says "writable", which there only reads the read-only flag,
+    # not the permissions — up to 2**31 times (a hang, found 2026-10-02).
+    probe = os.path.join(outdir, f".odentai_write_test_{os.getpid()}")
+    try:
+        os.makedirs(outdir, exist_ok=True)
+        with open(probe, "wb"):
+            pass
+        os.remove(probe)
+    except OSError as e:
+        raise RuntimeError(f"cannot write to the output folder {outdir}: choose "
+                           "another folder (this one is read-only or not "
+                           "allowed for your user)") from e
     if sys.platform != "win32" or _is_ascii(outdir):
         return outdir, lambda: None
     short = _short_name(outdir)

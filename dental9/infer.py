@@ -41,8 +41,12 @@ def pick_providers(device: str = "auto") -> List[str]:
              "cuda": ["CUDAExecutionProvider"]}[device]
     picked = [p for p in order if p in have]
     if not picked and device != "auto":
+        # Each build carries one GPU provider (DirectML on Windows, CUDA on
+        # Linux): say what to choose instead of listing provider names.
+        name = {"dml": "DirectML", "cuda": "CUDA"}[device]
         raise RuntimeError(
-            f"{device}: this onnxruntime build has no such provider. Available: {have}")
+            f"{name} is not part of this build; set Compute on to Automatic "
+            f"(available here: {have})")
     return picked + ["CPUExecutionProvider"]
 
 

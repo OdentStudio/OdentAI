@@ -129,7 +129,7 @@ result of a run.
 paths.
 
 **Blender API.**
-- The minimum in `bl_info` is 3.0; the production version is 5.2. Where the
+- The minimum in `bl_info` is 3.3 (the oldest tested); the production version is 5.2. Where the
   API changed (`stl_import`, auto smooth, `surface_render_method`) both
   branches are kept.
 - Never write to ID data from `draw` / `poll` / draw handlers — Blender

@@ -120,12 +120,15 @@ python3 scripts/export_onnx.py \
 ```
 
 This produces two files: `dental9.onnx` and `dental9.json` (normalisation
-window, spacing, tile size, epoch). Then any of three ways:
+window, spacing, tile size, epoch). Then either of two ways:
 
 1. drop both over the old ones in `<add-on>/bin/dental9/`;
-2. set the path to the new `.onnx` in the add-on preferences, next to the
-   device choice;
-3. rebuild the zip: `pack_addon.py --model <path to the new .onnx>`.
+2. rebuild the zip: `pack_addon.py --model <path to the new .onnx>`.
+
+The add-on always takes the weights from `bin/dental9/`; there is no path
+in its preferences (removed 2026-10-02: the zip carries the weights, and a
+path field only offered a way to point at the wrong file). The preferences
+show what is installed and what the last run computed on.
 
 **The two files always change together.** The `.json` holds the normalisation
 window and the grid spacing; new weights with an old `.json` give a plausible
@@ -400,7 +403,7 @@ alone" was off by a factor of two.
 | "the graphics card fails even on the smallest tile" | too little video memory, or a driver reset | crop with the box; Compute on = CPU in the add-on preferences |
 | "estimated peak RAM … WARNING" | the scan is larger than free memory | crop with the box |
 | "executable missing" | the zip was not fully unpacked | reinstall the add-on |
-| "model file not found" | the weights did not arrive | set the path to `dental9.onnx` in the add-on preferences |
+| "model file missing" | the weights did not arrive | reinstall the add-on |
 | "There is no dental9.json next to the model" | only the weights were replaced | these two files change **together** |
 | the tile shrank by itself | too little video memory | by design; nasal cavity Dice 0.881 instead of 0.920 |
 
@@ -446,3 +449,31 @@ files. Mesh dimensions are in millimetres and anatomically right (mandible
 box arrows → Segment inside the box → import; the meshes lie entirely inside
 the box, the opposite wall stays put while dragging, and "box outside the
 scan" arrives as a plain message with a link to the log.
+
+1.1.0 (2026-10-02), before the first release to clinics:
+
+- The release zip installed with `addon_install` into clean profiles of
+  Blender 3.3.8, 3.6.3, 4.5.3, 5.0.1 and 5.2.2: registers, Check system runs
+  the engine on DirectML, three disable/enable cycles, a real result (9
+  classes + 32 teeth) loads identically on all five.
+- 24 clinic scans through the built worker on an RTX 4090: Carestream 8100 /
+  8200 (0.15 and 0.075 mm, metal-artefact reduced), Planmeca ProMax (series
+  and multi-frame), Sirona Axeos, Morita, Vatech PHT-75 / PHT-35, i-CAT with
+  scouts in a subfolder, Dürr, HDXWILL; paths with Cyrillic, Polish letters,
+  `ё`, dots and spaces; a zip in a Cyrillic folder, `.mha`, `.nrrd`; output
+  into a folder named in Cyrillic and Chinese. All 21 valid scans computed
+  (15–472 s; 472 s is a 200 mm frame without the crop box), front and side
+  renders checked by eye. A CT of a denture alone (double-scan technique)
+  gives meaningless shapes, as expected for a non-anatomical input.
+- Refused with a readable message: an encrypted Sirona zip, an unreadable
+  export, 1 mm voxels written into a 0.16 mm scan (now refused in 4 s,
+  before resampling; it used to take ~30 GB and 70 s first), a read-only
+  output folder (checked before computing).
+- Also checked: crop box (every mesh within 0.01 mm of the box), CPU run,
+  `%TEMP%` under a Cyrillic/Chinese user name, a single file of a series,
+  "Separate teeth" without the teeth classes ticked (works), Esc / Stop /
+  quitting Blender / opening another file during a run (the worker is killed,
+  nothing left in `%TEMP%`, Segment is greyed out while a run goes), an
+  ODent5 project (Region goes under its OdentAI collection).
+- Not checkable on this machine: the tile fallback on a card with less video
+  memory, AMD / Intel graphics, a clean Windows 10.

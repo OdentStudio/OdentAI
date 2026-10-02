@@ -3,8 +3,8 @@
 
 The weights go as separate files inside bin/dental9/, not into the executable:
 replacing them later means replacing two files (dental9.onnx and dental9.json)
-with no rebuild and no reinstall of the add-on. By the same token the model
-can live anywhere at all, with its path set in the add-on preferences.
+with no rebuild and no reinstall of the add-on. The add-on always looks
+for them there, by these names.
 
 Usage:
     python3 deploy/scripts/pack_addon.py \

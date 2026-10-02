@@ -123,7 +123,16 @@ def _read_zip(path: str) -> sitk.Image:
     tmp = winpath.temp_dir()
     try:
         winpath.extract_zip_ascii(path, tmp)
-        img = read_volume(tmp)
+        try:
+            img = read_volume(tmp)
+        except RuntimeError as e:
+            # The message must name the archive, not our temporary folder
+            # (2026-10-02, an encrypted Sirona export: "no DICOM series ...
+            # in C:\...\Temp\odentai_7xiw2085" told the user nothing).
+            raise RuntimeError(
+                f"the archive {os.path.basename(path)} holds no readable DICOM "
+                "series or volume file (an encrypted or vendor-only export? "
+                "export the scan as DICOM from the scanner software)") from e
         # SimpleITK pixels are lazy: without an Execute the image may stay
         # bound to a file that is about to disappear.
         return sitk.Cast(img, img.GetPixelID())

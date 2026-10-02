@@ -14,12 +14,11 @@
 bl_info = {
     "name": "OdentAI Segment",
     "author": "Dr. Ilya Fomenko DMD, Dr. Essaid Issam Dakir DMD, Dr. Krasouski Dmitry DMD",
-    "version": (1, 0, 1),
-    "blender": (3, 0, 0),
+    "version": (1, 1, 0),
+    "blender": (3, 3, 0),
     "location": "3D View > Sidebar (N) > OdentAI",
     "description": "See more. Plan better. CBCT (DICOM) to teeth, jaws, canals, "
                    "sinuses and pharynx — AI segmentation for Blender",
-    "warning": "Beta",
     "category": "Import-Export",
 }
 
@@ -27,12 +26,13 @@ bl_info = {
 # and executable keep the name dental9 — nobody sees those.
 BRAND = "OdentAI Segment"
 BRAND_SHORT = "OdentAI"
-VERSION_LABEL = "1.0.1 Beta"
+VERSION_LABEL = "1.1.0"
 TAGLINE = "See more. Plan better."
 AUTHORS = ["Dr. Ilya Fomenko DMD", "Dr. Essaid Issam Dakir DMD", "Dr. Krasouski Dmitry DMD"]
 # One universe with ODent: the same community, the same link.
 TELEGRAM_LINK = "https://t.me/odent_blender"
 
+import atexit
 import json
 import math
 import os
@@ -340,12 +340,24 @@ def _ensure_executable(path: str) -> None:
             pass
 
 
-def _default_model() -> str:
+# What the last segmentation in this session ran on, for the preferences.
+# Module-level for the same reason as _DIAG.
+_LAST_RUN = {}
+
+
+def _model() -> str:
     """The weights live next to the binary as a separate file, not inside it:
     they weigh over a quarter of a gigabyte and must be replaceable without a
-    rebuild."""
-    p = os.path.join(ADDON_DIR, "bin", "dental9", "dental9.onnx")
-    return p if os.path.isfile(p) else ""
+    rebuild — by dropping new files over these. There is no path in the
+    preferences any more (2026-10-02): the zip always carries the weights, and
+    a path field only offered a way to point at the wrong file."""
+    return os.path.join(ADDON_DIR, "bin", "dental9", "dental9.onnx")
+
+
+def _teeth_model() -> str:
+    """The tooth-numbering weights for "Separate teeth", shipped next to the
+    main model."""
+    return os.path.join(ADDON_DIR, "bin", "dental9", "teeth_fdi.onnx")
 
 
 def _model_info(model: str) -> dict:
@@ -367,33 +379,32 @@ def _prefs(context):
     return context.preferences.addons[__name__].preferences
 
 
-def _teeth_model(prefs) -> str:
-    """Explicit path from the preferences, otherwise teeth_fdi.onnx next to the
-    main model — the two ship together in bin/dental9/."""
-    p = bpy.path.abspath(prefs.teeth_model_path) if prefs.teeth_model_path else ""
-    if p:
-        return p
-    m = bpy.path.abspath(prefs.model_path)
-    return os.path.join(os.path.dirname(m), "teeth_fdi.onnx") if m else ""
+# Each build carries one GPU provider: DirectML on Windows, CUDA on Linux.
+# Offering both made "CUDA" a dead end on Windows (2026-10-02: "this
+# onnxruntime build has no such provider"). The numbers are fixed so that a
+# value saved on the other platform is not misread as a different device.
+_GPU_ITEM = (("dml", "DirectML (GPU)", "Any graphics card: NVIDIA, AMD or Intel", 1)
+             if sys.platform == "win32" else
+             ("cuda", "CUDA (GPU)", "NVIDIA graphics card", 2))
+_DEVICE_ITEMS = [("auto", "Automatic", "Use the graphics card if it works, "
+                  "otherwise the CPU", 0),
+                 _GPU_ITEM,
+                 ("cpu", "CPU", "Many times slower, fallback only", 3)]
+
+
+def _device(prefs) -> str:
+    """The device for the worker. A value this build cannot use (one saved
+    before the list became per platform) comes back empty from Blender —
+    fall back to automatic rather than fail the run."""
+    d = prefs.device
+    return d if d in {i[0] for i in _DEVICE_ITEMS} else "auto"
 
 
 class Dental9Prefs(AddonPreferences):
     bl_idname = __name__
 
-    model_path: StringProperty(
-        name="Model file (.onnx)", subtype="FILE_PATH", default=_default_model(),
-        description="Network weights. To update the model, replace this file and "
-                    "the dental9.json next to it — both change together")
-    teeth_model_path: StringProperty(
-        name="Teeth model (.onnx)", subtype="FILE_PATH", default="",
-        description="Weights of the tooth-numbering model for \"Separate teeth\". "
-                    "Empty = teeth_fdi.onnx next to the main model")
     device: EnumProperty(
-        name="Compute on", default="auto",
-        items=[("auto", "Automatic", "Use the GPU if onnxruntime can see one"),
-               ("dml", "DirectML (GPU)", "Windows, any graphics card"),
-               ("cuda", "CUDA (GPU)", "NVIDIA only"),
-               ("cpu", "CPU", "Many times slower, fallback only")])
+        name="Compute on", default="auto", items=_DEVICE_ITEMS)
 
     def draw(self, context):
         _draw_brand_header(self.layout)
@@ -404,29 +415,53 @@ class Dental9Prefs(AddonPreferences):
         _draw_telegram(self.layout)
         self.layout.separator()
         col = self.layout.column()
-        col.prop(self, "model_path")
         col.prop(self, "device")
-        exe = _exe()
-        if not os.path.isfile(exe):
-            col.label(text=f"executable missing: {exe}", icon="ERROR")
-        m = bpy.path.abspath(self.model_path)
-        if m and os.path.isfile(m):
+        col.separator()
+
+        # What is installed: read-only, the zip brings all of it.
+        box = col.box()
+        box.label(text="Installed")
+        if os.path.isfile(_exe()):
+            box.label(text="segmentation engine", icon="CHECKMARK")
+        else:
+            box.label(text="segmentation engine missing — reinstall the add-on",
+                      icon="ERROR")
+        m = _model()
+        if os.path.isfile(m):
             info = _model_info(m)
-            col.label(text=f"model: {os.path.getsize(m)/1e6:.0f} MB, "
+            box.label(text=f"model: {os.path.getsize(m)/1e6:.0f} MB, "
                            f"trained on {info.get('dataset', '?')}, "
                            f"{info.get('spacing', '?')} mm, epoch {info.get('epoch', '?')}",
                       icon="CHECKMARK")
         else:
-            col.label(text="model file not found", icon="ERROR")
-        col.prop(self, "teeth_model_path")
-        tm = _teeth_model(self)
-        if tm and os.path.isfile(tm):
+            box.label(text="model missing — reinstall the add-on", icon="ERROR")
+        tm = _teeth_model()
+        if os.path.isfile(tm):
             info = _model_info(tm)
-            col.label(text=f"teeth model: {os.path.getsize(tm)/1e6:.0f} MB, "
+            box.label(text=f"teeth model: {os.path.getsize(tm)/1e6:.0f} MB, "
                            f"epoch {info.get('epoch', '?')}", icon="CHECKMARK")
         else:
-            col.label(text="teeth model not found — \"Separate teeth\" will not work",
+            box.label(text="teeth model missing — \"Separate teeth\" will not work",
                       icon="INFO")
+
+        # What the last run actually used: the setting above is a wish, this
+        # is what happened (a GPU can fail and leave the CPU, a tile can shrink).
+        box = col.box()
+        box.label(text="Last run")
+        if not _LAST_RUN:
+            box.label(text="no segmentation in this session yet", icon="BLANK1")
+        else:
+            dev = _LAST_RUN.get("device", "?")
+            box.label(text=f"computed on: {dev}",
+                      icon="CHECKMARK" if "GPU" in dev else "ERROR")
+            tile, want = _LAST_RUN.get("tile"), _LAST_RUN.get("requested_tile")
+            if tile:
+                t = f"tile {tile[0]}x{tile[1]}x{tile[2]}"
+                if want and list(want) != list(tile):
+                    t += " (reduced: not enough video memory)"
+                box.label(text=t, icon="DOT")
+            if _LAST_RUN.get("seconds"):
+                box.label(text=f"{_LAST_RUN['seconds']} s in total", icon="TIME")
         col.separator()
         col.operator("dental9.diagnose", icon="SYSTEM")
         for a in _DIAG.get("advice", []):
@@ -447,7 +482,7 @@ class Dental9Props(PropertyGroup):
     out_dir: StringProperty(
         name="Output", subtype="DIR_PATH", default="",
         description="Where to keep the STL files and the report; empty means "
-                    "a dental9_out folder next to the scan")
+                    "an OdentAI_out folder next to the scan")
     smooth: IntProperty(name="Smoothing", default=20, min=0, max=100,
                         description="Taubin iterations on the mesh. 0 leaves it raw")
     decimate: FloatProperty(name="Lighten mesh", default=0.0, min=0.0, max=0.95,
@@ -599,7 +634,7 @@ class DENTAL9_OT_diagnose(Operator):
         if not os.path.isfile(exe):
             self.report({"ERROR"}, f"executable missing: {exe}")
             return {"CANCELLED"}
-        model = bpy.path.abspath(_prefs(context).model_path)
+        model = _model()
         flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         win = context.window          # there is no window in background mode
         if win:
@@ -663,10 +698,122 @@ def _log_path() -> str:
     return os.path.join(d, "last_run.log")
 
 
+# The worker that is running now, if any: one at a time (two runs would share
+# the GPU, the log file and the scene), and stopped on quit or reload.
+_RUNNING = None
+
+
+def _kill_running() -> None:
+    """Stop the running worker. Blender calls an operator's cancel() when it
+    quits or loads another file, but not on every exit path (a crash, a
+    disabled add-on); this is the safety net for those. Before 2026-10-02 the
+    worker went on computing a 200 mm scan after Blender had closed."""
+    global _RUNNING
+    proc, _RUNNING = _RUNNING, None
+    if proc is not None and proc.poll() is None:
+        try:
+            proc.kill()
+            proc.wait(timeout=10)
+        except Exception:                                       # noqa: BLE001
+            pass
+
+
+atexit.register(_kill_running)
+
+# What the panel shows while a run goes: which run, the stage, 0..1, when it
+# started. Read from the worker's own output lines, so any worker build
+# drives it. Module-level like _DIAG: it describes this session, not the file.
+_PROGRESS = {}
+# Set by the Stop button; the running operator sees it on its next tick.
+_STOP_REQUESTED = False
+
+# Shares of the bar per stage, measured on 20 clinic scans (2026-10-02): the
+# network takes most of a run, meshes and teeth the rest.
+_P_READ, _P_NET, _P_MESH, _P_TEETH = 0.05, 0.70, 0.90, 0.99
+
+
+def _progress_from_line(line: str, n_classes: int, teeth: bool) -> None:
+    """Advance _PROGRESS by one line of the worker's output."""
+    import re
+    s = line.strip()
+    p = _PROGRESS
+    stage = p.get("phase", "")
+    mesh_end = _P_MESH if teeth else 0.98
+    m = re.match(r"tile (\d+)/(\d+)", s)
+    if s.startswith("reading:"):
+        p.update(phase="read", label="Reading the scan", factor=0.01)
+    elif s.startswith("resampled to"):
+        p.update(factor=_P_READ)
+    elif s.startswith("computing on:"):
+        dev = s.split(":", 1)[1]
+        p.update(phase="net", label="Segmenting on " + ("GPU" if "GPU" in dev else "CPU"),
+                 factor=_P_READ)
+    elif m and stage == "net":
+        f = int(m.group(1)) / max(1, int(m.group(2)))
+        p["factor"] = _P_READ + (_P_NET - _P_READ) * f
+    elif s.startswith("canal looks broken"):
+        p.update(label="Second pass for the canal")
+    elif s.startswith("surfaces prepared"):
+        p.update(phase="mesh", label="Building surfaces", factor=_P_NET, meshes=0)
+    elif stage == "mesh" and re.match(r"[A-Z][\w ]+: ", s):
+        p["meshes"] = p.get("meshes", 0) + 1
+        p["factor"] = _P_NET + (mesh_end - _P_NET) * min(1.0, p["meshes"] / max(1, n_classes))
+    elif s.startswith("separating teeth"):
+        p.update(phase="teeth", label="Numbering the teeth", factor=_P_MESH, arch=0)
+    elif stage == "teeth" and re.match(r"(upper|lower) arch", s):
+        p["arch"] = p.get("arch", 0) + 1
+        p["factor"] = _P_MESH + (_P_TEETH - _P_MESH) * p["arch"] / 2
+    elif m and stage == "teeth":
+        f = int(m.group(1)) / max(1, int(m.group(2)))
+        p["factor"] = _P_MESH + (_P_TEETH - _P_MESH) * (p.get("arch", 0) + f) / 2
+    elif s.startswith("done in"):
+        p.update(label="Loading into the scene", factor=1.0)
+
+
+def _draw_progress(layout) -> bool:
+    """The progress box under the Segment button; False when nothing runs."""
+    if _RUNNING is None or _RUNNING.poll() is not None or not _PROGRESS:
+        return False
+    box = layout.box()
+    secs = int(time.time() - _PROGRESS.get("start", time.time()))
+    f = max(0.0, min(1.0, _PROGRESS.get("factor", 0.0)))
+    text = f"{int(f * 100)}%  {secs // 60}:{secs % 60:02d}  {_PROGRESS.get('label', 'Starting')}"
+    if hasattr(box, "progress"):                                # Blender 4.0+
+        box.progress(factor=f, type="BAR", text=text)
+    else:
+        box.label(text=text, icon="SORTTIME")
+    box.operator("dental9.stop", icon="CANCEL")
+    return True
+
+
+class DENTAL9_OT_stop(Operator):
+    bl_idname = "dental9.stop"
+    bl_label = "Stop"
+    bl_description = "Stop the running segmentation or preview; nothing is loaded"
+
+    @classmethod
+    def poll(cls, context):
+        return _RUNNING is not None and _RUNNING.poll() is None
+
+    def execute(self, context):
+        global _STOP_REQUESTED
+        _STOP_REQUESTED = True
+        return {"FINISHED"}
+
+
+def _redraw_panels(context) -> None:
+    """The sidebar redraws only on events; a timer tick is not one for it."""
+    for win in context.window_manager.windows:
+        for area in win.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
+
 class _WorkerRun:
     """Runs the worker executable without freezing Blender: the output is
     read on a thread, echoed to the console, written to the log file and
-    shown in the status bar; the subclass finishes the job in _on_done."""
+    shown in the status bar; the subclass finishes the job in _on_done.
+    Esc stops it; so does quitting Blender or opening another file."""
 
     _timer = None
     _proc = None
@@ -674,7 +821,17 @@ class _WorkerRun:
     _log = None
     _error = ""
 
+    @classmethod
+    def poll(cls, context):
+        if _RUNNING is not None and _RUNNING.poll() is None:
+            if hasattr(cls, "poll_message_set"):                # Blender 3.0+
+                cls.poll_message_set("A run is in progress: wait for it, or "
+                                     "press Stop under the Segment button")
+            return False
+        return True
+
     def _launch(self, context, cmd) -> set:
+        global _RUNNING
         self._error = ""
         try:
             self._log = open(_log_path(), "w", encoding="utf-8", errors="replace")
@@ -686,10 +843,30 @@ class _WorkerRun:
         # CREATE_NO_WINDOW: without it a black console window pops up over
         # Blender on every run under Windows.
         flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-        self._proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            universal_newlines=True, bufsize=1, encoding="utf-8",
-            errors="replace", creationflags=flags)
+        try:
+            self._proc = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                universal_newlines=True, bufsize=1, encoding="utf-8",
+                errors="replace", creationflags=flags)
+        except OSError as e:
+            # An antivirus quarantining the exe, a blocked download: say so
+            # instead of a traceback.
+            if self._log:
+                self._log.write(f"could not start: {e}\n")
+                self._log.close()
+                self._log = None
+            self.report({"ERROR"}, f"could not start the segmentation engine: {e}. "
+                                   "Reinstall the add-on; check that the antivirus "
+                                   "did not block it")
+            self._on_stopped()
+            return {"CANCELLED"}
+        _RUNNING = self._proc
+        global _STOP_REQUESTED
+        _STOP_REQUESTED = False
+        _PROGRESS.clear()
+        _PROGRESS.update(start=time.time(), factor=0.0, phase="",
+                         label=self._progress_label)
+        _redraw_panels(context)
         self._q = queue.Queue()
         threading.Thread(target=self._reader, daemon=True).start()
         wm = context.window_manager
@@ -702,7 +879,58 @@ class _WorkerRun:
             self._q.put(line.rstrip())
         self._q.put(None)
 
+    def _stop(self, context, why: str) -> None:
+        """Kill the worker and tidy up after it: timer, status bar, log,
+        and whatever the subclass made (its temporary folder)."""
+        global _RUNNING
+        if self._proc is not None and self._proc.poll() is None:
+            try:
+                self._proc.kill()
+                self._proc.wait(timeout=10)
+            except Exception:                                   # noqa: BLE001
+                pass
+        if _RUNNING is self._proc:
+            _RUNNING = None
+        _PROGRESS.clear()
+        try:
+            _redraw_panels(context)
+        except Exception:                                       # noqa: BLE001
+            pass
+        if self._timer:
+            try:
+                context.window_manager.event_timer_remove(self._timer)
+            except Exception:                                   # noqa: BLE001
+                pass
+            self._timer = None
+        try:
+            context.workspace.status_text_set(None)
+        except Exception:                                       # noqa: BLE001
+            pass
+        if self._log:
+            self._log.write(f"\n{why}\n")
+            self._log.close()
+            self._log = None
+        self._on_stopped()
+
+    def cancel(self, context):
+        """Blender calls this when it quits or loads another file while the
+        run is going."""
+        self._stop(context, "stopped: Blender closed or another file was opened")
+
+    def _on_stopped(self) -> None:
+        """Cleanup of a run that did not finish; the subclass removes its
+        temporary folder here."""
+
+    _progress_label = "Starting"
+
     def modal(self, context, event):
+        stop = event.type == "ESC" and event.value == "PRESS"
+        if event.type == "TIMER" and _STOP_REQUESTED:
+            stop = True                     # the Stop button in the panel
+        if stop:
+            self._stop(context, "stopped by the user")
+            self.report({"WARNING"}, "stopped")
+            return {"CANCELLED"}
         if event.type != "TIMER":
             return {"PASS_THROUGH"}
         done = False
@@ -719,19 +947,27 @@ class _WorkerRun:
             _console(line)
             if self._log:
                 self._log.write(line + "\n")
+            _progress_from_line(line, len(getattr(self, "_selected", []) or []),
+                                bool(getattr(self, "_teeth", False)))
             # The details after the error are for the log, not the status bar.
             if line.startswith("ERROR:") and not self._error:
                 self._error = line[6:].strip()
             if not self._error:
-                context.workspace.status_text_set(line[:120])
+                context.workspace.status_text_set(f"{line[:110]}   ·   Esc: stop")
+        _redraw_panels(context)
         if not done:
             return {"RUNNING_MODAL"}
 
+        global _RUNNING
         if self._timer:
             context.window_manager.event_timer_remove(self._timer)
             self._timer = None
         context.workspace.status_text_set(None)
         rc = self._proc.wait()
+        if _RUNNING is self._proc:
+            _RUNNING = None
+        _PROGRESS.clear()
+        _redraw_panels(context)
         if self._log:
             self._log.write(f"\nexit code {rc}\n")
             self._log.close()
@@ -781,6 +1017,68 @@ def _remove_object(obj) -> None:
         bpy.data.meshes.remove(data)
 
 
+def _in_scene(scene, coll) -> bool:
+    if hasattr(scene.collection, "children_recursive"):   # Blender 3.2+
+        return coll in scene.collection.children_recursive
+    stack = list(scene.collection.children)
+    while stack:
+        c = stack.pop()
+        if c == coll:
+            return True
+        stack.extend(c.children)
+    return False
+
+
+def _brand_collection(scene):
+    """The scene's OdentAI collection, made and linked when missing. ODent5
+    keeps every segmentation under a collection of this name, so ours is
+    looked up by it rather than made anew."""
+    coll = bpy.data.collections.get(BRAND_SHORT)
+    if coll is None:
+        coll = bpy.data.collections.new(BRAND_SHORT)
+    if not _in_scene(scene, coll):
+        scene.collection.children.link(coll)
+    return coll
+
+
+REGION_COLLECTION = "Region"
+# Ours is found by this tag, not by the name: the OdentAI collection is shared
+# with ODent5, and a "Region" the user made there is not ours to delete.
+REGION_TAG = "odentai_region"
+
+
+def _our_region(parent):
+    for c in parent.children:
+        if c.get(REGION_TAG):
+            return c
+    return None
+
+
+def _region_collection(scene):
+    """OdentAI > Region: the bone preview and the crop box (2026-10-02, they
+    used to land in whatever collection was active, among the user's data)."""
+    parent = _brand_collection(scene)
+    coll = _our_region(parent)
+    if coll is None:
+        coll = bpy.data.collections.new(REGION_COLLECTION)
+        coll[REGION_TAG] = True
+        parent.children.link(coll)
+    return coll
+
+
+def _move_to(obj, coll) -> None:
+    for c in list(obj.users_collection):
+        c.objects.unlink(obj)
+    coll.objects.link(obj)
+
+
+def _drop_region_if_empty(scene) -> None:
+    parent = bpy.data.collections.get(BRAND_SHORT)
+    coll = _our_region(parent) if parent else None
+    if coll is not None and not coll.all_objects:
+        bpy.data.collections.remove(coll)
+
+
 def _make_box(name: str, lo, hi):
     """The crop box: a unit cube's eight corners spanning lo..hi, never rendered.
 
@@ -828,10 +1126,9 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         if not src or not os.path.exists(src):
             self.report({"ERROR"}, "no scan selected")
             return None
-        model = bpy.path.abspath(pr.model_path)
-        if not model or not os.path.isfile(model):
-            self.report({"ERROR"}, "model file not found, set it in the add-on "
-                                   "preferences")
+        model = _model()
+        if not os.path.isfile(model):
+            self.report({"ERROR"}, "model file missing, reinstall the add-on")
             return None
 
         self._selected = [k for k, _l, _h, _r, _a, _o in CLASSES if getattr(p, k)]
@@ -843,8 +1140,15 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         # scene: they go to a temporary folder that is removed after loading.
         if p.keep_files:
             self._outdir = bpy.path.abspath(p.out_dir) or os.path.join(
-                os.path.dirname(src), "dental9_out")
-            os.makedirs(self._outdir, exist_ok=True)
+                os.path.dirname(src), f"{BRAND_SHORT}_out")
+            try:
+                os.makedirs(self._outdir, exist_ok=True)
+            except OSError as e:
+                # A scan on a CD or a read-only network share.
+                self._outdir = ""
+                self.report({"ERROR"}, f"cannot write the files to {e.filename}: "
+                                       "choose another output folder")
+                return None
             self._tmp_out = False
         else:
             self._outdir = tempfile.mkdtemp(prefix="odentai_")
@@ -854,16 +1158,16 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         # when the canal comes out broken, and on a healthy scan it costs
         # nothing. A switch would only offer a way to make things worse.
         cmd = [exe, src, "-o", self._outdir, "-m", model,
-               "--device", pr.device, "--taubin", str(p.smooth),
+               "--device", _device(pr), "--taubin", str(p.smooth),
                "-c", *self._selected]
         if p.decimate > 0:
             cmd += ["--decimate", f"{p.decimate:.2f}"]
         self._teeth = bool(p.separate_teeth)
         if self._teeth:
-            tm = _teeth_model(pr)
-            if not tm or not os.path.isfile(tm):
-                self.report({"ERROR"}, "teeth model (teeth_fdi.onnx) not found, set "
-                                       "it in the add-on preferences")
+            tm = _teeth_model()
+            if not os.path.isfile(tm):
+                self.report({"ERROR"}, "teeth model missing, reinstall the add-on "
+                                       "or untick \"Separate teeth\"")
                 return None
             cmd += ["--separate-teeth", "--teeth-model", tm]
         if p.use_crop:
@@ -880,6 +1184,13 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
             return {"CANCELLED"}
         try:
             self._load(context)
+        except Exception as e:                                  # noqa: BLE001
+            # A run that computed fine but did not load must still end in a
+            # message, not a traceback from a timer.
+            import traceback
+            traceback.print_exc()
+            self.report({"ERROR"}, f"the result could not be loaded: {e}")
+            return {"CANCELLED"}
         finally:
             self._drop_tmp()
         # The preview and the box have done their job; they would only sit in
@@ -889,6 +1200,9 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
             if o is not None:
                 o.hide_set(True)
         return {"FINISHED"}
+
+    def _on_stopped(self):
+        self._drop_tmp()
 
     def _drop_tmp(self):
         """Remove the working folder when the user did not ask to keep files."""
@@ -904,8 +1218,14 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
             with open(rp, encoding="utf-8") as f:
                 report = json.load(f)
 
-        coll = bpy.data.collections.new(BRAND_SHORT)
-        context.scene.collection.children.link(coll)
+        # The OdentAI collection may already exist holding only Region (the
+        # preview and the box): the result goes into it. Once it holds a
+        # result, a new run gets a collection of its own as before, so two
+        # runs do not mix.
+        coll = _brand_collection(context.scene)
+        if coll.objects:
+            coll = bpy.data.collections.new(BRAND_SHORT)
+            context.scene.collection.children.link(coll)
         n = 0
         for i, (key, label, hexcol, rough, alpha, _o) in enumerate(CLASSES, start=1):
             if key not in self._selected:
@@ -933,6 +1253,9 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         tile = report.get("tile")
         want = report.get("requested_tile")
         secs = report.get("seconds")
+        _LAST_RUN.clear()
+        _LAST_RUN.update(device=report.get("device", "?"), tile=tile,
+                         requested_tile=want, seconds=secs)
         print("[OdentAI] " + "-" * 46)
         print(f"[OdentAI] device:     {report.get('device', '?')}")
         if tile:
@@ -1029,6 +1352,7 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
 
     bl_idname = "dental9.preview"
     bl_label = "Bone preview"
+    _progress_label = "Bone preview (no network, seconds)"
     bl_description = ("Quick bone surface without the network (seconds), with a box "
                       "around it. Shrink the box to the area of interest and only "
                       "that is segmented")
@@ -1057,7 +1381,17 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
             if rc != 0:
                 return {"CANCELLED"}
             return self._load(context)
+        except Exception as e:                                  # noqa: BLE001
+            import traceback
+            traceback.print_exc()
+            self.report({"ERROR"}, f"the preview could not be loaded: {e}")
+            return {"CANCELLED"}
         finally:
+            shutil.rmtree(self._outdir, ignore_errors=True)
+
+    def _on_stopped(self):
+        import shutil
+        if self._outdir:
             shutil.rmtree(self._outdir, ignore_errors=True)
 
     def _load(self, context):
@@ -1083,6 +1417,7 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
         prev.data.materials.append(_material(f"{BRAND_SHORT}_preview", "#B8B2A6", 0.6, 0.55))
         prev.hide_select = True          # clicks go to the handles, not the bone
         prev["odentai_source"] = self._src
+        _move_to(prev, _region_collection(context.scene))
 
         p.preview_obj, p.use_crop = prev, True
         box = _fit_box(p)
@@ -1137,6 +1472,7 @@ class DENTAL9_OT_remove_preview(Operator):
         _remove_object(p.crop_box)
         _remove_object(p.preview_obj)
         p.use_crop = False
+        _drop_region_if_empty(context.scene)
         return {"FINISHED"}
 
 
@@ -1501,6 +1837,9 @@ class DENTAL9_PT_panel(Panel):
     def draw(self, context):
         p = context.scene.dental9
         _draw_brand_header(self.layout)
+        # Also at the top: the panel is taller than a laptop screen, and the
+        # Segment button with the bar under it ends up below the edge.
+        _draw_progress(self.layout)
         col = self.layout.column()
         row = col.row(align=True)
         row.prop(p, "input_path")
@@ -1537,6 +1876,7 @@ class DENTAL9_PT_panel(Panel):
         c = r.column(align=True)
         c.scale_y = SEGMENT_BUTTON_SCALE
         c.operator("dental9.segment")
+        _draw_progress(self.layout)
 
         box = self.layout.box()
         row = box.row(align=True)
@@ -1614,7 +1954,7 @@ class DENTAL9_PT_about(Panel):
 
 # The About sub-panel must come after its parent: Blender resolves
 # bl_parent_id at registration time.
-CLASSES_RNA = (Dental9Prefs, Dental9Props, DENTAL9_OT_segment,
+CLASSES_RNA = (Dental9Prefs, Dental9Props, DENTAL9_OT_segment, DENTAL9_OT_stop,
                DENTAL9_OT_preview, DENTAL9_OT_remove_preview, DENTAL9_OT_open_log,
                DENTAL9_OT_fit_box, DENTAL9_OT_toggle_region, DENTAL9_GGT_crop_box,
                DENTAL9_OT_diagnose, DENTAL9_OT_pick_path, DENTAL9_OT_select_all,
@@ -1642,6 +1982,7 @@ def register():
 
 
 def unregister():
+    _kill_running()
     _remove_draw_handlers()
     del bpy.types.Scene.dental9
     for c in reversed(CLASSES_RNA):
