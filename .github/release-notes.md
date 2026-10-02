@@ -36,7 +36,7 @@ Updating from an older version: remove the old add-on first (Preferences → Add
 
 1. **Scan** — a DICOM folder (nested exports are fine), a single `.dcm`, a `.zip`, or a `.nii.gz` / `.mha` / `.nrrd` file.
 2. Optional, recommended for large scans — **Region → Bone preview**: a quick bone surface in a few seconds, with a box around it. Drag the **coloured arrows** to move each wall of the box, the **orange ring** to move the whole box. With **Only inside the box** ticked, only that region is computed — much faster and lighter on memory.
-3. Choose the **classes**, optionally **Separate teeth (FDI numbers)**, and press **Segment**. A bar at the top of the panel shows the stage and the time; **Stop** (or Esc in the 3D view) ends the run. The results go into the **OdentAI** collection, the bone preview and the box into **OdentAI › Region**.
+3. Choose the **classes**, optionally **Separate teeth (FDI numbers)**, and press **Segment**. A bar at the top of the panel shows the stage and the time; **Stop** (or Esc in the 3D view) ends the run. Each run goes into its own collection inside **OdentAI**, named by number and scan (e.g. `2 · Smith/CT`), so different CTs in one project stay apart and an old run is deleted in one click; the bone preview and the box go into **OdentAI › Region**.
 
 ## If something goes wrong
 

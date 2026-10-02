@@ -1066,6 +1066,47 @@ def _region_collection(scene):
     return coll
 
 
+RUN_TAG = "odentai_run"
+# Blender's limit for an ID name is 63 bytes (UTF-8: a Cyrillic letter is 2).
+_ID_NAME_BYTES = 63
+
+
+def _scan_label(src: str) -> str:
+    """A short name for the scan: the file or folder name, with the folder
+    above it when the name alone says nothing ("CT", "dicom", "Data")."""
+    src = os.path.normpath(src) if src else ""
+    base = os.path.basename(src)
+    for ext in (".nii.gz", ".zip", ".mha", ".mhd", ".nrrd", ".nii", ".dcm"):
+        if base.lower().endswith(ext):
+            base = base[:-len(ext)]
+            break
+    if base.lower() in {"ct", "dicom", "data", "dcm", "cbct", "kt", "vol_1",
+                        "vol_2", "vol_3", "scan", "images"}:
+        parent = os.path.basename(os.path.dirname(src))
+        if parent:
+            base = f"{parent}/{base}"
+    return base or "scan"
+
+
+def _run_collection(scene, src: str):
+    """OdentAI > "<n> · <scan>": one sub-collection per run (2026-10-02).
+    Runs on different CTs in one project stay apart and a run is removed
+    with one click; ODent5 merges a second top-level OdentAI.001 into
+    OdentAI, which used to mix the objects of two runs."""
+    parent = _brand_collection(scene)
+    # The next number after the highest, not a count: with run 1 deleted a
+    # count would give the next run the name of the one still there.
+    n = 1 + max([int(c.get(RUN_TAG, 0)) for c in parent.children] + [0])
+    name = f"{n} · {_scan_label(src)}"
+    while len(name.encode("utf-8")) > _ID_NAME_BYTES:
+        name = name[:-1]
+    coll = bpy.data.collections.new(name)
+    coll[RUN_TAG] = n
+    coll["odentai_source"] = src
+    parent.children.link(coll)
+    return coll
+
+
 def _move_to(obj, coll) -> None:
     for c in list(obj.users_collection):
         c.objects.unlink(obj)
@@ -1112,6 +1153,7 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
     _tmp_out = False
     _selected = []
     _teeth = False
+    _src = ""
 
     def _start(self, context):
         """Checks and the command line; None when something is missing."""
@@ -1126,6 +1168,7 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         if not src or not os.path.exists(src):
             self.report({"ERROR"}, "no scan selected")
             return None
+        self._src = src
         model = _model()
         if not os.path.isfile(model):
             self.report({"ERROR"}, "model file missing, reinstall the add-on")
@@ -1218,14 +1261,7 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
             with open(rp, encoding="utf-8") as f:
                 report = json.load(f)
 
-        # The OdentAI collection may already exist holding only Region (the
-        # preview and the box): the result goes into it. Once it holds a
-        # result, a new run gets a collection of its own as before, so two
-        # runs do not mix.
-        coll = _brand_collection(context.scene)
-        if coll.objects:
-            coll = bpy.data.collections.new(BRAND_SHORT)
-            context.scene.collection.children.link(coll)
+        coll = _run_collection(context.scene, getattr(self, "_src", ""))
         n = 0
         for i, (key, label, hexcol, rough, alpha, _o) in enumerate(CLASSES, start=1):
             if key not in self._selected:
@@ -1304,7 +1340,10 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         tdir = os.path.join(self._outdir, "teeth")
         if not os.path.isdir(tdir):
             return 0
-        coll = bpy.data.collections.new("Teeth")
+        # Numbered after the run: collection names are unique per file, and
+        # "Teeth.001" says less than "Teeth 2" next to run 2.
+        run = parent.get(RUN_TAG)
+        coll = bpy.data.collections.new(f"Teeth {run}" if run else "Teeth")
         parent.children.link(coll)
         n = 0
         items = []
