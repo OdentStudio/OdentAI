@@ -13,8 +13,8 @@
 # process — better ours than the user's session with unsaved work.
 bl_info = {
     "name": "OdentAI Segment",
-    "author": "Dr. Ilya Fomenko DMD, Dr. Essaid Issam Dakir DMD, Dr. Krasouski Dmitry DMD",
-    "version": (1, 1, 0),
+    "author": "Dr. Illia Fomenko DMD, Dr. Essaid Issam Dakir DMD, Dr. Krasouski Dmitry DMD",
+    "version": (1, 1, 1),
     "blender": (3, 3, 0),
     "location": "3D View > Sidebar (N) > OdentAI",
     "description": "See more. Plan better. CBCT (DICOM) to teeth, jaws, canals, "
@@ -26,9 +26,9 @@ bl_info = {
 # and executable keep the name dental9 — nobody sees those.
 BRAND = "OdentAI Segment"
 BRAND_SHORT = "OdentAI"
-VERSION_LABEL = "1.1.0"
+VERSION_LABEL = "1.1.1"
 TAGLINE = "See more. Plan better."
-AUTHORS = ["Dr. Ilya Fomenko DMD", "Dr. Essaid Issam Dakir DMD", "Dr. Krasouski Dmitry DMD"]
+AUTHORS = ["Dr. Illia Fomenko DMD", "Dr. Essaid Issam Dakir DMD", "Dr. Krasouski Dmitry DMD"]
 # One universe with ODent: the same community, the same link.
 TELEGRAM_LINK = "https://t.me/odent_blender"
 
@@ -771,7 +771,7 @@ def _progress_from_line(line: str, n_classes: int, teeth: bool) -> None:
 
 
 def _draw_progress(layout) -> bool:
-    """The progress box under the Segment button; False when nothing runs."""
+    """The progress box at the top of the panel; False when nothing runs."""
     if _RUNNING is None or _RUNNING.poll() is not None or not _PROGRESS:
         return False
     box = layout.box()
@@ -982,6 +982,23 @@ class _WorkerRun:
         raise NotImplementedError
 
 
+def _live(obj, scene):
+    """The object if it is still in the scene, else None. A box deleted with
+    X or in the Outliner stays in bpy.data while our pointer holds it — out
+    of the scene, invisible — and was still used for the crop (2026-10-02);
+    removed outright, the pointer is None but "Only inside the box" stayed on,
+    hidden, and Segment refused with nothing the user could untick."""
+    try:
+        return obj if obj is not None and scene.objects.get(obj.name) == obj else None
+    except ReferenceError:                # removed from bpy.data meanwhile
+        return None
+
+
+def _crop_box(p):
+    """The box the crop uses: alive and with "Only inside the box" on."""
+    return _live(p.crop_box, p.id_data) if p.use_crop else None
+
+
 def _crop_args(p) -> list:
     """The crop box as --crop arguments, in the scan's own frame.
 
@@ -993,14 +1010,15 @@ def _crop_args(p) -> list:
     it unmoved, so a box drawn around an earlier result works too. A rotated
     box is taken by its enclosing axis-aligned box.
     """
-    box = p.crop_box
-    if not (p.use_crop and box):
+    box = _crop_box(p)
+    if box is None:
         return []
+    prev = _live(p.preview_obj, p.id_data)
     from mathutils import Matrix, Vector
     # matrix_world lags behind a location or size just typed into the panel
     # until the depsgraph runs; without this the previous box would be sent.
     bpy.context.view_layer.update()
-    to_scan = (p.preview_obj.matrix_world.inverted() if p.preview_obj
+    to_scan = (prev.matrix_world.inverted() if prev
                else Matrix.Identity(4)) @ box.matrix_world
     pts = [to_scan @ Vector(c) for c in box.bound_box]
     lo = [min(v[i] for v in pts) for i in range(3)]
@@ -1213,12 +1231,8 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
                                        "or untick \"Separate teeth\"")
                 return None
             cmd += ["--separate-teeth", "--teeth-model", tm]
-        if p.use_crop:
-            if not p.crop_box:
-                self.report({"ERROR"}, "\"Only inside the box\" is on, but there is "
-                                       "no box: press \"Bone preview\" first")
-                return None
-            cmd += _crop_args(p)
+        # No live box means the whole scan, whatever the hidden checkbox says.
+        cmd += _crop_args(p)
         return cmd
 
     def _on_done(self, context, rc):
@@ -1240,7 +1254,7 @@ class DENTAL9_OT_segment(_WorkerRun, Operator):
         # the result's way. The eye button in the panel brings them back.
         p = context.scene.dental9
         for o in (p.preview_obj, p.crop_box):
-            if o is not None:
+            if _live(o, context.scene) is not None:
                 o.hide_set(True)
         return {"FINISHED"}
 
@@ -1391,10 +1405,10 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
 
     bl_idname = "dental9.preview"
     bl_label = "Bone preview"
-    _progress_label = "Bone preview (no network, seconds)"
-    bl_description = ("Quick bone surface without the network (seconds), with a box "
-                      "around it. Shrink the box to the area of interest and only "
-                      "that is segmented")
+    _progress_label = "Bone preview"
+    bl_description = ("Quick bone surface in a few seconds, with a box around it. "
+                      "Shrink the box to the area of interest and only that is "
+                      "segmented")
     bl_options = {"REGISTER"}
 
     _outdir = ""
@@ -1523,7 +1537,7 @@ class DENTAL9_OT_fit_box(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene.dental9.preview_obj is not None
+        return _live(context.scene.dental9.preview_obj, context.scene) is not None
 
     def execute(self, context):
         _fit_box(context.scene.dental9)
@@ -1540,13 +1554,13 @@ class DENTAL9_OT_toggle_region(Operator):
         p = context.scene.dental9
         show = not _region_visible(p)
         for o in (p.preview_obj, p.crop_box):
-            if o is not None:
+            if _live(o, context.scene) is not None:
                 o.hide_set(not show)
         return {"FINISHED"}
 
 
 def _region_visible(p) -> bool:
-    box = p.crop_box
+    box = _live(p.crop_box, p.id_data)
     try:
         return box is not None and box.visible_get()
     except RuntimeError:                  # not in the current view layer
@@ -1844,13 +1858,14 @@ def _draw_region(layout, context, p) -> None:
     box = layout.box()
     row = box.row(align=True)
     row.label(text="Region")
-    if p.preview_obj or p.crop_box:
+    prev, cbox = _live(p.preview_obj, context.scene), _live(p.crop_box, context.scene)
+    if prev or cbox:
         row.operator("dental9.toggle_region", text="",
                      icon="HIDE_OFF" if _region_visible(p) else "HIDE_ON")
         row.operator("dental9.fit_box", text="", icon="SHADING_BBOX")
         row.operator("dental9.remove_preview", text="", icon="TRASH")
     box.operator("dental9.preview", icon="MESH_CUBE")
-    if not p.crop_box:
+    if not cbox:
         box.label(text="whole scan", icon="INFO")
         return
     box.prop(p, "use_crop")
@@ -1858,10 +1873,10 @@ def _draw_region(layout, context, p) -> None:
         box.label(text="drag the arrows, the ring moves", icon="INFO")
     col = box.column(align=True)
     col.enabled = p.use_crop
-    col.prop(p.crop_box, "location", text="Centre")
+    col.prop(cbox, "location", text="Centre")
     # Dimensions rather than scale: millimetres, whatever the box's history.
-    col.prop(p.crop_box, "dimensions", text="Size (mm)")
-    src = p.preview_obj.get("odentai_source") if p.preview_obj else None
+    col.prop(cbox, "dimensions", text="Size (mm)")
+    src = prev.get("odentai_source") if prev else None
     if src and os.path.normcase(src) != os.path.normcase(bpy.path.abspath(p.input_path)):
         box.label(text="the preview is of another scan", icon="ERROR")
 
@@ -1876,8 +1891,8 @@ class DENTAL9_PT_panel(Panel):
     def draw(self, context):
         p = context.scene.dental9
         _draw_brand_header(self.layout)
-        # Also at the top: the panel is taller than a laptop screen, and the
-        # Segment button with the bar under it ends up below the edge.
+        # At the top, once: the panel is taller than a laptop screen, and a
+        # bar under the Segment button ended up below the edge.
         _draw_progress(self.layout)
         col = self.layout.column()
         row = col.row(align=True)
@@ -1915,7 +1930,6 @@ class DENTAL9_PT_panel(Panel):
         c = r.column(align=True)
         c.scale_y = SEGMENT_BUTTON_SCALE
         c.operator("dental9.segment")
-        _draw_progress(self.layout)
 
         box = self.layout.box()
         row = box.row(align=True)
