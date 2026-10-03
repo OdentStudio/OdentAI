@@ -28,6 +28,14 @@ and tick **OdentAI Segment**. The panel is in the 3D view under **N**, tab
 **OdentAI**. Press **Check system** once to see whether the graphics card is
 used. The release page has the full instructions and requirements.
 
+Blender 3.3 is the minimum; **we recommend Blender 4.5 or newer**.
+
+In short: pick the scan → **Bone preview** and fit the box (optional) →
+tick the classes → **Segment**. A single progress bar at the top of the panel
+shows the stage and the time; **Stop** or Esc ends the run. Each run goes into
+its own sub-collection of **OdentAI** (e.g. `2 · Smith/CT`), the bone preview
+and the box into **OdentAI › Region**.
+
 ## Repository
 
 ```
@@ -156,6 +164,9 @@ frame. Hence the **Region** block in the panel:
    the STL files). The scan is cropped before resampling, the meshes land in
    place, and `labels.nii.gz` is written on the full original grid (zeros
    outside the box).
+
+Since 1.1.1 a box deleted from the scene (X, or in the Outliner) no longer
+crops anything: without a box in the scene the whole scan is computed.
 
 Command line: `dental9 <scan> -o <folder> --preview` → `preview.stl` +
 `preview.json` (frame bounds, threshold).
