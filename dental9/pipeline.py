@@ -64,6 +64,11 @@ class Options:
     save_labels: bool = False   # also write a NIfTI label map next to the STLs
     canal_refine: bool = True   # second canal pass when the first comes out broken
     canal_refine_force: bool = False   # always, even when the first pass looks sound
+    canal_refine_mode: str = "match"   # "match" = intensities onto the training curve; "fine" = finer grid
+    canal_fine_spacing: float = 0.25   # grid of the "fine" second pass, mm
+    canal_fine_margin_mm: float = 15.0  # context around the mandible for it
+    canal_enhance: int = 0      # AHE radius (voxels) before the second canal pass; 0 = off
+    canal_enhance_window: str = "fixed"   # bone window for it: "fixed" or "auto"
     make_stl: bool = True       # off for bulk accuracy evaluation
     threads: int = 0
     separate_teeth: bool = False   # second pass: individual teeth with FDI numbers
@@ -198,8 +203,40 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
     return out
 
 
+def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
+                cfg: dict, opts: "Options", log) -> np.ndarray:
+    """The canal predicted on a finer grid around the mandible, as a mask on `grid`.
+
+    2026-10-05, a 0.15 mm scan: at 0.3 mm the left canal came out as two short
+    fragments (105 mm3, half its course) — rotations, tile shifts, mirroring,
+    denoising and intensity matching all failed to bring the front half back,
+    while 0.25 mm found it whole (300 mm3, the full course) and 0.35 mm lost
+    it almost entirely. Thin canal walls drop below what the network resolves
+    at 0.3 mm. 0.25 is within the scale range nnU-Net trains with.
+
+    Context matters: cropping tightly to the mandible lost two thirds of that
+    canal, hence the margin.
+    """
+    idx = np.argwhere(labels == 1)[:, ::-1]          # z, y, x -> x, y, z
+    pts = np.array([grid.TransformIndexToPhysicalPoint([int(v) for v in c])
+                    for c in (idx.min(0), idx.max(0))])
+    m = float(opts.canal_fine_margin_mm)
+    sub = _io.crop_to_box(src, pts.min(0) - m, pts.max(0) + m)
+    fine = _io.to_training_grid(sub, opts.canal_fine_spacing)
+    v = _io.normalize_ct(sitk.GetArrayFromImage(fine).astype(np.float32),
+                         _norm_props(cfg["normalization"]))
+    log(f"  fine pass: {opts.canal_fine_spacing} mm, {v.shape}")
+    logits, _ = _infer.predict_logits_auto(sess, v, opts.tile or cfg["tile"], opts.overlap,
+                                           None, np.float16 if v.size > 150e6 else np.float32, log)
+    c = sitk.GetImageFromArray((logits.argmax(0) == 5).astype(np.uint8))
+    del logits
+    c.CopyInformation(fine)
+    return sitk.GetArrayFromImage(sitk.Resample(c, grid, sitk.Transform(),
+                                                sitk.sitkNearestNeighbor, 0)).astype(bool)
+
+
 def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
-                  opts: "Options", spacing, log) -> np.ndarray:
+                  opts: "Options", spacing, log, src=None, grid=None) -> np.ndarray:
     """A second pass over the canal only, and only inside the mandible.
 
     The user's idea, and exactly right: when the canal comes out broken the
@@ -225,6 +262,9 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
 
     log("  canal looks broken (" + "; ".join(health["reasons"]) + ") — second pass"
         if health["reasons"] else "  canal second pass (forced)")
+    if opts.canal_refine_mode == "fine" and src is not None:
+        canal2 = _fine_canal(src, grid, labels, sess, cfg, opts, log)
+        return _merge_canal(labels, canal2, health, spacing, thr, log)
     idx = np.argwhere(mand)
     pad = int(ref.get("margin_voxels", 20))
     lo = np.maximum(idx.min(0) - pad, 0)
@@ -234,6 +274,14 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     # The second pass works from RAW Hounsfield units, so normalisation is
     # redone: vol arrives already normalised, while the curve is given in HU.
     crop_hu = _denormalize(vol[sl], cfg["normalization"])
+    if opts.canal_enhance > 0:
+        t = time.time()
+        crop_hu, lo_hu, hi_hu = _enhance_bone_hu(crop_hu, opts.canal_enhance,
+                                                 opts.canal_enhance_window)
+        log(f"  bone enhancement: window {lo_hu:.0f}..{hi_hu:.0f} HU, "
+            f"radius {opts.canal_enhance}, {time.time() - t:.1f} s")
+    # Enhancement goes BEFORE the matching: the curve maps the result back
+    # onto the training distribution the network expects.
     matched = _match_to_reference(crop_hu, ref)
     vol2 = _io.normalize_ct(matched, _norm_props(cfg["normalization"]))
     logits2, _ = _infer.predict_logits_auto(sess, vol2, opts.tile or cfg["tile"],
@@ -241,7 +289,10 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     canal2 = np.zeros(vol.shape, bool)
     canal2[sl] = logits2.argmax(0) == 5
     del logits2
+    return _merge_canal(labels, canal2, health, spacing, thr, log)
 
+
+def _merge_canal(labels, canal2, health, spacing, thr, log) -> np.ndarray:
     out = labels.copy()
     # Take the second pass's canal only where the first pass found nothing
     # more definite: teeth and the upper skull are not given away.
@@ -257,6 +308,29 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
         log("  the second pass found less than the first — keeping the first")
         return labels
     return out
+
+
+def _enhance_bone_hu(crop_hu: np.ndarray, radius: int, window: str = "fixed",
+                     alpha: float = 0.3, beta: float = 0.3):
+    """Bone window + 3D adaptive histogram equalisation, returned in HU.
+
+    Experimental (2026-10-05), for the second canal pass only: on a 0.15 mm
+    scan the left canal came out in two short fragments and the plain second
+    pass found even less. Never for the first pass — the network was trained
+    on CTNormalization of raw HU, not on windowed or equalised data.
+    """
+    if window == "auto":
+        tissue = crop_hu[crop_hu > -500]
+        lo, hi = ((float(np.median(tissue)), float(np.percentile(tissue, 99)))
+                  if tissue.size else (-100.0, 1700.0))
+    else:
+        lo, hi = -100.0, 1700.0
+    w = np.clip((crop_hu - lo) / (hi - lo), 0.0, 1.0).astype(np.float32)
+    img = sitk.AdaptiveHistogramEqualization(sitk.GetImageFromArray(w),
+                                             radius=[int(radius)] * 3,
+                                             alpha=alpha, beta=beta)
+    out = sitk.GetArrayFromImage(img).astype(np.float32) * (hi - lo) + lo
+    return out, lo, hi
 
 
 def _norm_props(norm: dict) -> dict:
@@ -464,7 +538,7 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
     log(f"  inference took {t_pred:.1f} s; {_sysinfo.snapshot()}")
 
     if opts.canal_refine and any(k.id == 5 for k in opts.classes):
-        new = _refine_canal(vol, labels, ref, cfg, opts, grid.GetSpacing(), log)
+        new = _refine_canal(vol, labels, ref, cfg, opts, grid.GetSpacing(), log, src, grid)
         sess = ref.sess
         if new is not labels:
             labels = new

@@ -53,6 +53,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--canal-refine-always", action="store_true",
                    help="run the second canal pass on every scan, not only when "
                         "the first pass looks broken (for evaluation)")
+    p.add_argument("--canal-refine-mode", choices=("match", "fine"), default="match",
+                   help="second canal pass: match = intensities onto the training "
+                        "curve; fine = the mandible again on a 0.25 mm grid")
+    p.add_argument("--canal-enhance", type=int, nargs="?", const=8, default=0,
+                   metavar="RADIUS",
+                   help="experimental: bone window + 3D adaptive histogram "
+                        "equalisation before the second canal pass only; RADIUS "
+                        "in voxels of the 0.3 mm grid (8 when omitted)")
+    p.add_argument("--canal-enhance-window", choices=("fixed", "auto"), default="fixed",
+                   help="fixed = -100..1700 HU; auto = from the scan (median of "
+                        "non-air voxels .. their 99th percentile)")
     p.add_argument("--labels", action="store_true", help="also write labels.nii.gz")
     p.add_argument("--no-stl", action="store_true",
                    help="labels only, no surfaces — for accuracy evaluation")
@@ -151,6 +162,9 @@ def main(argv=None) -> int:
                    sub_voxel=not a.no_sub_voxel, save_labels=a.labels or a.no_stl,
                    canal_refine=not a.no_canal_refine,
                    canal_refine_force=a.canal_refine_always,
+                   canal_refine_mode=a.canal_refine_mode,
+                   canal_enhance=a.canal_enhance,
+                   canal_enhance_window=a.canal_enhance_window,
                    make_stl=not a.no_stl,
                    threads=a.threads,
                    separate_teeth=a.separate_teeth,
