@@ -47,6 +47,9 @@ DEFAULT_TRIGGERS = {
     "span_fraction_below": 0.30,
     "components_per_side_above": 2,
 }
+# The fine canal pass is skipped above this many voxels: a normal mandible
+# with its margin is 60-120 M at 0.25 mm, which takes 25-75 s on a GPU.
+FINE_MAX_VOXELS = 150_000_000
 
 
 @dataclass
@@ -217,11 +220,22 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
     Context matters: cropping tightly to the mandible lost two thirds of that
     canal, hence the margin.
     """
-    idx = np.argwhere(labels == 1)[:, ::-1]          # z, y, x -> x, y, z
+    # The box comes from the largest piece of mandible only: stray specks
+    # labelled mandible blew one box up to 123x171x147 mm, 197 M voxels at
+    # 0.25 mm and 324 s (2026-10-06, a 750-slice scan).
+    cc = sitk.RelabelComponent(sitk.ConnectedComponent(
+        sitk.GetImageFromArray((labels == 1).astype(np.uint8))), sortByObjectSize=True)
+    idx = np.argwhere(sitk.GetArrayViewFromImage(cc) == 1)[:, ::-1]   # z, y, x -> x, y, z
     pts = np.array([grid.TransformIndexToPhysicalPoint([int(v) for v in c])
                     for c in (idx.min(0), idx.max(0))])
     m = float(opts.canal_fine_margin_mm)
     sub = _io.crop_to_box(src, pts.min(0) - m, pts.max(0) + m)
+    n = int(np.prod([round(s * v / opts.canal_fine_spacing)
+                     for s, v in zip(sub.GetSize(), sub.GetSpacing())]))
+    if n > FINE_MAX_VOXELS:
+        log(f"  fine pass skipped: the mandible box is {n / 1e6:.0f} M voxels "
+            f"at {opts.canal_fine_spacing} mm")
+        return None
     fine = _io.to_training_grid(sub, opts.canal_fine_spacing)
     v = _io.normalize_ct(sitk.GetArrayFromImage(fine).astype(np.float32),
                          _norm_props(cfg["normalization"]))
@@ -264,6 +278,8 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
         if health["reasons"] else "  canal second pass (forced)")
     if opts.canal_refine_mode == "fine" and src is not None:
         canal2 = _fine_canal(src, grid, labels, sess, cfg, opts, log)
+        if canal2 is None:
+            return labels
         return _merge_canal(labels, canal2, health, spacing, thr, log)
     idx = np.argwhere(mand)
     pad = int(ref.get("margin_voxels", 20))

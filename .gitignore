@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 build_windows.log
 _backup_*/
+.venv-linux/
+dist-linux/
+build-linux/

@@ -1,0 +1,130 @@
+
+=== [1/22] Колкова ТВ.dcm
+  first   : R  457 mm3 49.2 mm 1pc | L  105 mm3 29.1 mm 2pc   trigger: weak side 0.11 cm3; asymmetry 0.23
+  match   : R  457 mm3 49.2 mm 1pc | L  105 mm3 29.1 mm 2pc  [25 s]
+  fine m15 : R  469 mm3 49.2 mm 1pc | L  305 mm3 50.7 mm 1pc  [75 s]
+  fine m30 : R  466 mm3 49.2 mm 1pc | L  300 mm3 50.7 mm 1pc  [73 s]
+
+=== [2/22] 14 10 26 Пышный 24 26 Пономарева соге.zip
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK\Modules\IO\GDCM\src\itkGDCMSeriesFileNames.cxx, line 101
+GDCMSeriesFileNames (0000022E7F664040): No Series were found
+
+  first   : R  429 mm3 44.4 mm 1pc | L  361 mm3 37.2 mm 1pc   trigger: -
+  fine m15 : R  454 mm3 44.4 mm 1pc | L  374 mm3 37.2 mm 1pc  [70 s]
+  fine m30 : R  459 mm3 44.7 mm 1pc | L  374 mm3 37.2 mm 1pc  [72 s]
+
+=== [3/22] 16_10_26_Василевская_26_27_Казакова_одое_соге.zip
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK\Modules\IO\GDCM\src\itkGDCMSeriesFileNames.cxx, line 101
+GDCMSeriesFileNames (0000022E7F665A40): No Series were found
+
+  first   : R  352 mm3 42.9 mm 1pc | L  294 mm3 42.9 mm 1pc   trigger: -
+  fine m15 : R  357 mm3 42.6 mm 1pc | L  271 mm3 40.2 mm 1pc  [53 s]
+  fine m30 : R  355 mm3 43.2 mm 1pc | L  277 mm3 42.6 mm 1pc  [68 s]
+
+=== [4/22] 16_10_26_Гвоздь_32_42+_уд32_31_42_Пономарева_соге.zip
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK\Modules\IO\GDCM\src\itkGDCMSeriesFileNames.cxx, line 101
+GDCMSeriesFileNames (0000022E7F665A40): No Series were found
+
+  first   : R  367 mm3 54.0 mm 1pc | L  294 mm3 46.2 mm 1pc   trigger: -
+  fine m15 : R  356 mm3 54.0 mm 1pc | L  294 mm3 46.2 mm 1pc  [43 s]
+  fine m30 : R  356 mm3 54.0 mm 1pc | L  294 mm3 46.2 mm 1pc  [59 s]
+
+=== [5/22] Свиридович ВП.dcm
+  first   : R  477 mm3 51.0 mm 1pc | L  331 mm3 41.4 mm 1pc   trigger: -
+  fine m15 : R  457 mm3 51.0 mm 1pc | L  319 mm3 41.1 mm 1pc  [50 s]
+  fine m30 : R  453 mm3 51.0 mm 1pc | L  310 mm3 41.1 mm 1pc  [53 s]
+
+=== [6/22] Изюмова М.dcm
+  first   : R  407 mm3 54.6 mm 1pc | L  340 mm3 50.4 mm 1pc   trigger: -
+  fine m15 : R  405 mm3 54.9 mm 1pc | L  333 mm3 50.7 mm 1pc  [42 s]
+  fine m30 : R  403 mm3 54.9 mm 1pc | L  332 mm3 50.7 mm 1pc  [59 s]
+
+=== [7/22] Титов ДМ.dcm
+  first   : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc   trigger: volume 0.00 cm3; weak side 0.00 cm3; asymmetry 0.00; course covered 0.00
+  match   : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [0 s]
+  fine m15 : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [1 s]
+  fine m30 : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [3 s]
+
+=== [8/22] Kacper/Bator/dicom
+  first   : R  422 mm3 42.9 mm 1pc | L  436 mm3 48.3 mm 1pc   trigger: -
+  fine m15 : R  431 mm3 43.5 mm 1pc | L  427 mm3 48.3 mm 1pc  [324 s]
+  fine m30 : R  398 mm3 43.2 mm 1pc | L  433 mm3 48.3 mm 1pc  [440 s]
+
+=== [9/22] Bator/post_op/20260917_191422_862
+  first   : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc   trigger: volume 0.00 cm3; weak side 0.00 cm3; asymmetry 0.00; course covered 0.00
+  match   : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [3 s]
+  fine m15 : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [6 s]
+  fine m30 : R    0 mm3  0.0 mm 0pc | L    0 mm3  0.0 mm 0pc  [6 s]
+
+=== [10/22] Done/golasińska lidia/cbct
+  first   : R  408 mm3 53.4 mm 1pc | L  470 mm3 54.0 mm 1pc   trigger: -
+  fine m15 : R  391 mm3 52.8 mm 1pc | L  470 mm3 53.7 mm 1pc  [64 s]
+  fine m30 : R  385 mm3 53.1 mm 1pc | L  463 mm3 54.0 mm 1pc  [103 s]
+
+=== [11/22] golasińska lidia/postop/20260627_145212_549
+  first   : R  402 mm3 55.2 mm 1pc | L  463 mm3 52.8 mm 1pc   trigger: -
+  fine m15 : R  401 mm3 54.6 mm 1pc | L  455 mm3 52.8 mm 1pc  [35 s]
+  fine m30 : R  395 mm3 54.6 mm 1pc | L  447 mm3 52.8 mm 1pc  [36 s]
+
+=== [12/22] kowalska paulina/kowalska DICOM/20260601_123115_232
+  first   : R  357 mm3 49.8 mm 1pc | L  375 mm3 49.2 mm 1pc   trigger: -
+  fine m15 : R  359 mm3 49.5 mm 1pc | L  369 mm3 49.5 mm 1pc  [32 s]
+  fine m30 : R  359 mm3 49.5 mm 1pc | L  369 mm3 49.5 mm 1pc  [25 s]
+
+=== [13/22] mrozek andrzej/mrozek/20260504_182637_043
+  first   : R  509 mm3 54.9 mm 1pc | L  507 mm3 56.4 mm 1pc   trigger: -
+  fine m15 : R  507 mm3 54.6 mm 1pc | L  507 mm3 56.7 mm 1pc  [25 s]
+  fine m30 : R  500 mm3 54.6 mm 1pc | L  500 mm3 56.7 mm 1pc  [26 s]
+
+=== [14/22] postop_mrozek_andzej/mrozek nowe/20260611_190823_683
+  first   : R  522 mm3 58.2 mm 1pc | L  516 mm3 58.5 mm 1pc   trigger: -
+  fine m15 : R  525 mm3 58.2 mm 1pc | L  485 mm3 58.2 mm 1pc  [26 s]
+  fine m30 : R  525 mm3 58.2 mm 1pc | L  485 mm3 58.2 mm 1pc  [26 s]
+
+=== [15/22] Done/Zyga/20260525_115426_663
+  first   : R  355 mm3 52.5 mm 1pc | L  368 mm3 50.1 mm 1pc   trigger: -
+  fine m15 : R  351 mm3 53.4 mm 2pc | L  384 mm3 50.1 mm 1pc  [25 s]
+  fine m30 : R  351 mm3 53.4 mm 2pc | L  384 mm3 50.1 mm 1pc  [25 s]
+
+=== [16/22] Zyga/post_op/20260803_115749_749
+  first   : R  343 mm3 48.9 mm 1pc | L  353 mm3 45.9 mm 1pc   trigger: -
+  fine m15 : R  331 mm3 49.5 mm 2pc | L  364 mm3 45.9 mm 1pc  [25 s]
+  fine m30 : R  331 mm3 49.5 mm 2pc | L  364 mm3 45.9 mm 1pc  [25 s]
+
+=== [17/22] łukaszewski grzegorz/łukaszewski grzegorz/20260521_145005_501
+  first   : R  504 mm3 54.0 mm 1pc | L  492 mm3 54.9 mm 1pc   trigger: -
+  fine m15 : R  471 mm3 53.4 mm 1pc | L  486 mm3 54.6 mm 1pc  [26 s]
+  fine m30 : R  465 mm3 53.4 mm 1pc | L  477 mm3 54.6 mm 1pc  [26 s]
+
+=== [18/22] łukaszewski grzegorz/łukaszewski grzegorz_postop/kt
+  first   : R    0 mm3  0.0 mm 0pc | L  409 mm3 50.7 mm 1pc   trigger: volume 0.41 cm3; weak side 0.00 cm3; asymmetry 0.00; course covered 0.00
+  match   : R    0 mm3  0.0 mm 0pc | L  415 mm3 50.7 mm 1pc  [6 s]
+  fine m15 : R    0 mm3  0.0 mm 0pc | L  377 mm3 50.7 mm 1pc  [4 s]
+  fine m30 : R    0 mm3  0.0 mm 0pc | L  377 mm3 50.7 mm 1pc  [4 s]
+
+=== [19/22] łużna iwona/łużna iwona/20260505_200535_276
+  first   : R  409 mm3 48.9 mm 1pc | L  408 mm3 47.4 mm 1pc   trigger: -
+  fine m15 : R  404 mm3 48.9 mm 1pc | L  423 mm3 47.4 mm 1pc  [25 s]
+  fine m30 : R  404 mm3 48.9 mm 1pc | L  423 mm3 47.4 mm 1pc  [25 s]
+
+=== [20/22] łużna iwona/post_op/20260623_200759_532
+  first   : R  132 mm3 16.8 mm 1pc | L  166 mm3 25.2 mm 1pc   trigger: volume 0.30 cm3; weak side 0.13 cm3
+  match   : R  132 mm3 16.8 mm 1pc | L  166 mm3 25.2 mm 1pc  [2 s]
+  fine m15 : R  115 mm3 16.5 mm 1pc | L  157 mm3 24.9 mm 1pc  [5 s]
+  fine m30 : R  115 mm3 16.5 mm 1pc | L  157 mm3 24.9 mm 1pc  [5 s]
+
+=== [21/22] Kacper/Olejnik/dicom
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK\Modules\IO\GDCM\src\itkGDCMSeriesFileNames.cxx, line 101
+GDCMSeriesFileNames (0000022E7F664BA0): No Series were found
+
+  first   : R  434 mm3 53.1 mm 1pc | L  417 mm3 58.2 mm 1pc   trigger: -
+  fine m15 : R  435 mm3 53.1 mm 1pc | L  406 mm3 55.5 mm 1pc  [53 s]
+  fine m30 : R  431 mm3 52.8 mm 1pc | L  415 mm3 55.8 mm 1pc  [97 s]
+
+=== [22/22] Kacper/Wolan/DICOM
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK\Modules\IO\GDCM\src\itkGDCMSeriesFileNames.cxx, line 101
+GDCMSeriesFileNames (0000022E7F6658A0): No Series were found
+
+  first   : R  341 mm3 44.1 mm 1pc | L  397 mm3 43.5 mm 1pc   trigger: -
+  fine m15 : R  323 mm3 43.5 mm 1pc | L  392 mm3 43.5 mm 1pc  [45 s]
+  fine m30 : R  320 mm3 43.5 mm 1pc | L  388 mm3 43.5 mm 1pc  [65 s]

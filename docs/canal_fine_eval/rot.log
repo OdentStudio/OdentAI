@@ -1,0 +1,25 @@
+original      : R 0.457 cm3 span 49.4 mm 1 pc | L 0.105 cm3 span 29.1 mm 2 pc
+yaw+5         : R 0.454 cm3 span 49.2 mm 1 pc | L 0.177 cm3 span 30.2 mm 1 pc
+       canal looks broken (asymmetry 0.39) — second pass
+       after the second pass: 0.51 cm3 — still weak side 0.05 cm3; asymmetry 0.10; course covered 0.12
+       the second pass found less than the first — keeping the first
+yaw-5         : R 0.458 cm3 span 49.2 mm 1 pc | L 0.107 cm3 span 28.5 mm 2 pc
+       canal looks broken (weak side 0.11 cm3; asymmetry 0.23) — second pass
+       after the second pass: 0.52 cm3 — still weak side 0.05 cm3; asymmetry 0.12; course covered 0.13
+       the second pass found less than the first — keeping the first
+pitch+5       : R 0.451 cm3 span 49.5 mm 1 pc | L 0.123 cm3 span 30.3 mm 2 pc
+       canal looks broken (weak side 0.12 cm3; asymmetry 0.27) — second pass
+       after the second pass: 0.52 cm3 — still weak side 0.05 cm3; asymmetry 0.10; course covered 0.13
+       the second pass found less than the first — keeping the first
+pitch-5       : R 0.459 cm3 span 49.4 mm 1 pc | L 0.038 cm3 span  9.0 mm 1 pc
+       canal looks broken (weak side 0.04 cm3; asymmetry 0.08; course covered 0.12) — second pass
+       after the second pass: 0.47 cm3 — still weak side 0.00 cm3; asymmetry 0.00; course covered 0.00
+       the second pass found less than the first — keeping the first
+roll+5        : R 0.451 cm3 span 49.4 mm 1 pc | L 0.126 cm3 span 31.5 mm 2 pc
+       canal looks broken (weak side 0.13 cm3; asymmetry 0.28) — second pass
+       after the second pass: 0.47 cm3 — still weak side 0.00 cm3; asymmetry 0.00; course covered 0.00
+       the second pass found less than the first — keeping the first
+roll-5        : R 0.460 cm3 span 49.4 mm 1 pc | L 0.117 cm3 span 25.5 mm 2 pc
+       canal looks broken (weak side 0.12 cm3; asymmetry 0.25) — second pass
+       after the second pass: 0.57 cm3 — still weak side 0.11 cm3; asymmetry 0.23
+       the second pass found less than the first — keeping the first
