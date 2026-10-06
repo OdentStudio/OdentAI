@@ -1,0 +1,48 @@
+base            : R    457 mm3 y 26.1..75.0 1pc | L    105 mm3 y 49.5..78.3 2pc  [24 s]
+overlap 0.75    : R    459 mm3 y 26.1..75.0 1pc | L    114 mm3 y 50.1..78.3 2pc  [34 s]
+shift (0, 80, 80): R    447 mm3 y 26.1..75.0 1pc | L    105 mm3 y 48.0..78.3 2pc  [26 s]
+shift (0, 40, 120): R    438 mm3 y 26.1..75.0 1pc | L    105 mm3 y 48.0..78.3 2pc  [26 s]
+shift (40, 0, 0): R    463 mm3 y 26.1..75.0 1pc | L    120 mm3 y 53.4..78.3 1pc  [24 s]
+shift (40, 120, 40): R    458 mm3 y 26.1..75.0 1pc | L    124 mm3 y 53.4..78.3 1pc  [28 s]
+spacing 0.25    : R    466 mm3 y 26.1..75.0 1pc | L    300 mm3 y 28.2..78.6 1pc  [49 s]
+spacing 0.35    : R    487 mm3 y 25.8..75.0 1pc | L     41 mm3 y 69.3..77.7 1pc  [17 s]
+spacing 0.2     : R    435 mm3 y 26.1..75.0 1pc | L    336 mm3 y 28.2..78.9 1pc  [193 s]
+yaw +10         : R    454 mm3 y 26.1..75.0 1pc | L    211 mm3 y 45.6..78.3 1pc  [25 s]
+yaw -10         : R    457 mm3 y 26.1..75.3 1pc | L    102 mm3 y 49.5..78.3 2pc  [24 s]
+yaw +15         : R    454 mm3 y 25.8..75.0 1pc | L    216 mm3 y 44.4..78.0 1pc  [24 s]
+yaw -15         : R    453 mm3 y 26.1..75.3 1pc | L    111 mm3 y 46.2..78.3 2pc  [24 s]
+roll +10        : R    448 mm3 y 26.1..75.0 1pc | L     78 mm3 y 65.4..78.3 1pc  [25 s]
+roll -10        : R    460 mm3 y 26.1..75.0 1pc | L    209 mm3 y 45.6..78.3 1pc  [25 s]
+roll +15        : R    451 mm3 y 26.1..75.3 1pc | L     86 mm3 y 64.8..78.3 1pc  [25 s]
+roll -15        : R    461 mm3 y 26.1..75.3 1pc | L    219 mm3 y 45.6..78.3 1pc  [25 s]
+pitch +10       : R    414 mm3 y 28.2..75.3 1pc | L    182 mm3 y 28.2..75.0 2pc  [24 s]
+pitch -10       : R    462 mm3 y 26.1..75.0 1pc | L     40 mm3 y 70.5..78.3 1pc  [24 s]
+pitch +15       : R    438 mm3 y 26.1..75.3 1pc | L    304 mm3 y 27.9..77.7 1pc  [24 s]
+pitch -15       : R    466 mm3 y 26.1..75.0 1pc | L     32 mm3 y 71.1..78.3 1pc  [24 s]
+gauss 0.3mm     : R    466 mm3 y 26.1..75.3 1pc | L    148 mm3 y 45.3..78.3 2pc  [25 s]
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK-prefix\include\ITK-5.4\itkAnisotropicDiffusionImageFilter.hxx, line 76
+CurvatureAnisotropicDiffusionImageFilter (000002E2395FE1E0): Anisotropic diffusion unstable time step: 0.0625
+Stable time step for this image must be smaller than 0.01875
+
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK-prefix\include\ITK-5.4\itkAnisotropicDiffusionImageFilter.hxx, line 76
+CurvatureAnisotropicDiffusionImageFilter (000002E2395FE1E0): Anisotropic diffusion unstable time step: 0.0625
+Stable time step for this image must be smaller than 0.01875
+
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK-prefix\include\ITK-5.4\itkAnisotropicDiffusionImageFilter.hxx, line 76
+CurvatureAnisotropicDiffusionImageFilter (000002E2395FE1E0): Anisotropic diffusion unstable time step: 0.0625
+Stable time step for this image must be smaller than 0.01875
+
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK-prefix\include\ITK-5.4\itkAnisotropicDiffusionImageFilter.hxx, line 76
+CurvatureAnisotropicDiffusionImageFilter (000002E2395FE1E0): Anisotropic diffusion unstable time step: 0.0625
+Stable time step for this image must be smaller than 0.01875
+
+WARNING: In D:\a\SimpleITK\SimpleITK\bld\ITK-prefix\include\ITK-5.4\itkAnisotropicDiffusionImageFilter.hxx, line 76
+CurvatureAnisotropicDiffusionImageFilter (000002E2395FE1E0): Anisotropic diffusion unstable time step: 0.0625
+Stable time step for this image must be smaller than 0.01875
+
+aniso diff      : R      0 mm3      -      0pc | L     43 mm3 y 59.1..69.3 1pc  [28 s]
+median r1 0.15  : R    462 mm3 y 26.1..75.0 1pc | L    148 mm3 y 45.9..78.3 2pc  [32 s]
+votes >= 1      : R    559 mm3 y 25.8..75.3 1pc | L    408 mm3 y 27.9..78.9 1pc
+votes >= 2      : R    529 mm3 y 25.8..75.3 1pc | L    347 mm3 y 28.2..78.6 1pc
+votes >= 3      : R    512 mm3 y 26.1..75.3 1pc | L    309 mm3 y 28.2..78.6 1pc
+votes >= 5      : R    488 mm3 y 26.1..75.0 1pc | L    215 mm3 y 44.4..78.3 1pc
