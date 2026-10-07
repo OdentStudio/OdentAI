@@ -67,11 +67,9 @@ class Options:
     save_labels: bool = False   # also write a NIfTI label map next to the STLs
     canal_refine: bool = True   # second canal pass when the first comes out broken
     canal_refine_force: bool = False   # always, even when the first pass looks sound
-    canal_refine_mode: str = "match"   # "match" = intensities onto the training curve; "fine" = finer grid
+    canal_refine_mode: str = "fine"    # "fine" = the mandible again on a finer grid; "match" = intensities onto the training curve
     canal_fine_spacing: float = 0.25   # grid of the "fine" second pass, mm
     canal_fine_margin_mm: float = 15.0  # context around the mandible for it
-    canal_enhance: int = 0      # AHE radius (voxels) before the second canal pass; 0 = off
-    canal_enhance_window: str = "fixed"   # bone window for it: "fixed" or "auto"
     make_stl: bool = True       # off for bulk accuracy evaluation
     threads: int = 0
     separate_teeth: bool = False   # second pass: individual teeth with FDI numbers
@@ -251,16 +249,25 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
 
 def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
                   opts: "Options", spacing, log, src=None, grid=None) -> np.ndarray:
-    """A second pass over the canal only, and only inside the mandible.
+    """A second pass over the canal only, and only around the mandible.
 
-    The user's idea, and exactly right: when the canal comes out broken the
-    intensities are to blame, not the network. Map them onto the training
-    domain WITHIN THE MANDIBLE and predict again, taking ONLY the canal from
-    the second pass. The other eight classes are not touched at all — measured,
-    none of them moved by a hundredth.
+    Runs when `_canal_health` says the canal came out broken; ONLY the canal is
+    taken from it, the other eight classes are not touched at all.
 
-    Measured on a scan where the canal was lost: 0.22 cm3 in six fragments
-    (33% of the course) became 0.61 cm3 in four (88%), reference 0.60.
+    Two modes. "fine" (the default since 2026-10-07) predicts the mandible
+    again on a 0.25 mm grid — thin canal walls fall below what the network
+    resolves at 0.3 mm. "match" is the older pass: intensities inside the
+    mandible mapped onto the training curve and predicted again at 0.3 mm.
+
+    Why fine is the default: on 22 clinic scans the match pass helped on none
+    and on one (0.15 mm, the left canal in two fragments) made it worse, while
+    the fine pass restored that canal whole, 105 -> 305 mm3. On the 70 labelled
+    held-out cases neither pass ever runs — the trigger does not fire there —
+    so the change costs nothing measurable: the two are byte-identical on that
+    set (docs/canal_fine_eval/REPORT_dice_ru.md).
+
+    Neither pass may be forced on every scan. Measured against manual labels on
+    those 70: forcing fine costs 0.0075 canal Dice, forcing match 0.0039.
     """
     ref = cfg.get("canal_refine")
     if not ref:
@@ -290,14 +297,6 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     # The second pass works from RAW Hounsfield units, so normalisation is
     # redone: vol arrives already normalised, while the curve is given in HU.
     crop_hu = _denormalize(vol[sl], cfg["normalization"])
-    if opts.canal_enhance > 0:
-        t = time.time()
-        crop_hu, lo_hu, hi_hu = _enhance_bone_hu(crop_hu, opts.canal_enhance,
-                                                 opts.canal_enhance_window)
-        log(f"  bone enhancement: window {lo_hu:.0f}..{hi_hu:.0f} HU, "
-            f"radius {opts.canal_enhance}, {time.time() - t:.1f} s")
-    # Enhancement goes BEFORE the matching: the curve maps the result back
-    # onto the training distribution the network expects.
     matched = _match_to_reference(crop_hu, ref)
     vol2 = _io.normalize_ct(matched, _norm_props(cfg["normalization"]))
     logits2, _ = _infer.predict_logits_auto(sess, vol2, opts.tile or cfg["tile"],
@@ -324,29 +323,6 @@ def _merge_canal(labels, canal2, health, spacing, thr, log) -> np.ndarray:
         log("  the second pass found less than the first — keeping the first")
         return labels
     return out
-
-
-def _enhance_bone_hu(crop_hu: np.ndarray, radius: int, window: str = "fixed",
-                     alpha: float = 0.3, beta: float = 0.3):
-    """Bone window + 3D adaptive histogram equalisation, returned in HU.
-
-    Experimental (2026-10-05), for the second canal pass only: on a 0.15 mm
-    scan the left canal came out in two short fragments and the plain second
-    pass found even less. Never for the first pass — the network was trained
-    on CTNormalization of raw HU, not on windowed or equalised data.
-    """
-    if window == "auto":
-        tissue = crop_hu[crop_hu > -500]
-        lo, hi = ((float(np.median(tissue)), float(np.percentile(tissue, 99)))
-                  if tissue.size else (-100.0, 1700.0))
-    else:
-        lo, hi = -100.0, 1700.0
-    w = np.clip((crop_hu - lo) / (hi - lo), 0.0, 1.0).astype(np.float32)
-    img = sitk.AdaptiveHistogramEqualization(sitk.GetImageFromArray(w),
-                                             radius=[int(radius)] * 3,
-                                             alpha=alpha, beta=beta)
-    out = sitk.GetArrayFromImage(img).astype(np.float32) * (hi - lo) + lo
-    return out, lo, hi
 
 
 def _norm_props(norm: dict) -> dict:
