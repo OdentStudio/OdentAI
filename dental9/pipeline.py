@@ -397,13 +397,16 @@ def _denormalize(v: np.ndarray, norm: dict) -> np.ndarray:
 
 
 def _signed_fields(logits: np.ndarray, ids: Sequence[int]) -> Dict[int, np.ndarray]:
-    """Per class: its logit minus the best of the others.
+    """Per class: its logit minus the best of the others, all at once.
 
     The zero of that field is exactly the argmax boundary, but placed by the
     values rather than rounded to a voxel. The best and second-best are found
     once for all classes: the winner's rival is the runner-up, everyone else's
     rival is the winner. Done in slabs along z, otherwise a large volume would
     need four copies of itself side by side.
+
+    The caller drops the logits straight after this, which is what makes the
+    eager form the cheaper one on small grids — see the choice in `_segment`.
     """
     C, Z = logits.shape[0], logits.shape[1]
     out = {i: np.empty(logits.shape[1:], np.float32) for i in ids}
@@ -421,20 +424,100 @@ def _signed_fields(logits: np.ndarray, ids: Sequence[int]) -> Dict[int, np.ndarr
     return out
 
 
+class _Fields:
+    """Per class: its logit minus the best of the others, built on demand.
+
+    The zero of that field is exactly the argmax boundary, but placed by the
+    values rather than rounded to a voxel.
+
+    For a large grid building all nine at once is the peak of the whole run:
+    four bytes per voxel per class, 36 on top of everything else. The mesh loop
+    uses each field once, so here each is built just before its surface and
+    dropped after. What IS shared between classes — the best and second-best
+    logit at every voxel — is computed once, in slabs along z, so a field then
+    costs one subtraction rather than another sort.
+
+    The price is that the logit buffer stays alive to the end instead of being
+    dropped as soon as the fields exist. That is why this form is used only
+    where the buffer is float16, i.e. on the large grids it was meant for:
+    measured 2026-10-07 on a 500x600x600 scan, 18.4 GB before and 12.9 after,
+    while on a 334^3 one with the teeth pass it went the other way, 8.2 before
+    and 9.0 after.
+
+    `keep` holds the few that are asked for twice: the mesh loop silences the
+    specks it dropped inside the arch fields, and the teeth pass then uses them
+    silenced. A rebuilt field would have lost that and would change the teeth.
+    """
+
+    def __init__(self, logits: np.ndarray, ids: Sequence[int], keep=()):
+        self._logits, self._ids, self._keep = logits, set(ids), set(keep)
+        self._cache: Dict[int, np.ndarray] = {}
+        C, Z = logits.shape[0], logits.shape[1]
+        shape = logits.shape[1:]
+        self._best = np.empty(shape, np.float32)
+        self._second = np.empty(shape, np.float32)
+        chunk = max(1, Z // 8)
+        for z0 in range(0, Z, chunk):
+            z1 = min(z0 + chunk, Z)
+            part = logits[:, z0:z1].astype(np.float32)
+            top = np.take_along_axis(part, np.argpartition(part, C - 2, axis=0)[C - 2:], axis=0)
+            self._best[z0:z1], self._second[z0:z1] = top.max(0), top.min(0)
+
+    def __contains__(self, i: int) -> bool:
+        return i in self._ids
+
+    def get(self, i: int, default=None):
+        return self[i] if i in self._ids else default
+
+    def __getitem__(self, i: int) -> np.ndarray:
+        if i in self._cache:
+            return self._cache[i]
+        out = np.empty(self._best.shape, np.float32)
+        Z = out.shape[0]
+        chunk = max(1, Z // 8)
+        for z0 in range(0, Z, chunk):
+            z1 = min(z0 + chunk, Z)
+            mine = self._logits[i, z0:z1].astype(np.float32)
+            # The winner's rival is the runner-up, everyone else's is the
+            # winner. Comparing against the best value says which one this is
+            # without keeping the winner's index around.
+            out[z0:z1] = mine - np.where(mine >= self._best[z0:z1],
+                                         self._second[z0:z1], self._best[z0:z1])
+        if i in self._keep:
+            self._cache[i] = out
+        return out
+
+    def close(self) -> None:
+        self._cache.clear()
+        self._logits = self._best = self._second = None
+
+
 def _peak_ram_estimate_gb(n: int, num_classes: int, n_out: int,
                           teeth: bool, fields: bool) -> float:
     """The most RAM the run will hold at once, from the grid size alone.
 
     Two candidates for the peak: during inference (volume, logit buffer,
-    weight sum) and while the signed fields are built (volume, logit buffer,
-    labels and one float32 field per output class). The HU copy for the teeth
-    pass lives through both. On top: the onnxruntime session itself, measured
+    weight sum) and while the surfaces are built (logit buffer, labels and the
+    signed fields, which since 2026-10-07 are one at a time). The HU copy for
+    the teeth pass lives through both. On top: the onnxruntime session itself, measured
     at about 2 GB resident with DirectML (2026-09-29, 367³ grid: estimate
     within 0.1 GB of the measured 6.5 GB peak).
     """
     acc = num_classes * (2 if n > 150_000_000 else 4)
     during = 4 + acc + 4
-    after = 4 + acc + 1 + (4 * n_out if fields else 0)
+    # After inference the normalised volume is dropped. Above the float16
+    # threshold the fields are built one at a time, so the logit buffer stays
+    # and only a couple of fields are alive; below it all of them are built and
+    # the buffer goes (see the choice in _segment).
+    if not fields:
+        after = acc + 1
+    elif n > 150_000_000:
+        # one field at a time, the logit buffer stays: the two shared top
+        # logits, the field in hand, and the two kept for the teeth pass
+        after = acc + 8 + 4 + (8 if teeth else 0) + 1
+    else:
+        # all of them at once, with the buffer still alive until they are built
+        after = acc + 4 * n_out + 1
     return SESSION_RAM_GB + n * (max(during, after) + (2 if teeth else 0)) / 2 ** 30
 
 
@@ -602,13 +685,27 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
         refined_canal = False
 
     ids = [k.id for k in opts.classes]
-    fields = _signed_fields(logits, ids) if (opts.sub_voxel and opts.make_stl) else {}
-    del logits
+    grid_shape = list(vol.shape)
+    # The normalised volume has done its work by now — the teeth pass carries
+    # its own int16 copy in Hounsfield units — and it is 4 bytes per voxel.
+    vol = None
+    # Which form is cheaper depends on what dominates: the fields, or the logit
+    # buffer they are built from. Above the float16 threshold the buffer is
+    # half the size and the fields are the problem, so they are built one at a
+    # time; below it the buffer costs more than the fields and is better simply
+    # dropped. The threshold is the same one that picks the accumulator dtype.
+    if not (opts.sub_voxel and opts.make_stl):
+        fields = {}
+    elif logits.dtype == np.float16:
+        fields = _Fields(logits, ids, (3, 4) if opts.separate_teeth else ())
+    else:
+        fields = _signed_fields(logits, ids)
+    logits = None           # a lazy _Fields keeps its own reference; nothing else does
     log(f"  surfaces prepared; {_sysinfo.snapshot()}")
 
     sp = grid.GetSpacing()
     vox_cm3 = float(np.prod(sp)) / 1000.0
-    report = {"input": real_path, "grid": list(vol.shape), "tile": list(tile),
+    report = {"input": real_path, "grid": grid_shape, "tile": list(tile),
               "requested_tile": list(fitted),
               "predict_seconds": round(t_pred, 1),
               "device": _infer.session_device(sess), "classes": {}}
@@ -678,6 +775,8 @@ def _segment(path: str, outdir: str, real_path: str, real_outdir: str,
         log("  labels on the original grid -> labels.nii.gz")
 
     report["seconds"] = round(time.time() - t_all, 1)
+    if hasattr(fields, "close"):
+        fields.close()
     report["peak_ram_gb"] = _sysinfo.process_peak_gb()
     if opts.crop:
         report["crop"] = [float(v) for v in opts.crop]

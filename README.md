@@ -238,7 +238,13 @@ export that claimed 1.0 mm instead of 0.15.
 
 Memory is checked before computing: the label buffer is ten classes over the
 whole volume, and if it does not fit into free memory, an honest error beats
-swapping and a frozen machine. Since 1.0.1 the log also shows an estimate of
+swapping and a frozen machine. Since 2026-10-07 the signed fields for the
+meshes are built one class at a time on large grids, instead of all nine
+before the first mesh — on a 500x600x600 scan that took the peak from 18.4 to
+13.1 GB with every STL byte-identical. On small grids they are still built in
+one go: there the logit buffer they come from is float32 and costs more than
+the fields, so dropping it early wins instead (334^3 with the teeth pass: 8.2
+GB either way). Since 1.0.1 the log also shows an estimate of
 the **peak**: the peak is not the buffer but the moment the signed fields are
 built (one float32 field per class while the buffer is still alive), plus
 ~2 GB for the onnxruntime session itself. On a 367³ grid the estimate matched
