@@ -2,6 +2,12 @@
 
 Ready-built: the add-on, the segmentation engine and the model weights are all inside. Nothing else to install.
 
+## What's new in 1.1.2
+
+- **Mandibular canal on fine scans.** When the canal comes out broken on one side, that side is computed again at a finer resolution. On a 0.15 mm scan where half of the left canal was missing it now comes out whole. A healthy canal is not touched.
+- **Crop box over one side of the jaw:** a sound canal is no longer reported as broken and recomputed, so such runs are faster.
+- **Large scans need less memory** (about 2 GB less on a 200 mm field of view).
+
 ## Download
 
 | System | File |

@@ -14,7 +14,7 @@
 bl_info = {
     "name": "OdentAI Segment",
     "author": "Dr. Illia Fomenko DMD, Dr. Essaid Issam Dakir DMD, Dr. Krasouski Dmitry DMD",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (3, 3, 0),
     "location": "3D View > Sidebar (N) > OdentAI",
     "description": "See more. Plan better. CBCT (DICOM) to teeth, jaws, canals, "
@@ -26,7 +26,7 @@ bl_info = {
 # and executable keep the name dental9 — nobody sees those.
 BRAND = "OdentAI Segment"
 BRAND_SHORT = "OdentAI"
-VERSION_LABEL = "1.1.1"
+VERSION_LABEL = "1.1.2"
 TAGLINE = "See more. Plan better."
 AUTHORS = ["Dr. Illia Fomenko DMD", "Dr. Essaid Issam Dakir DMD", "Dr. Krasouski Dmitry DMD"]
 # One universe with ODent: the same community, the same link.
