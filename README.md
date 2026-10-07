@@ -260,8 +260,8 @@ broken that means two boxes in turn rather than one over the whole jaw: peak
 memory is a maximum, not a sum, so it costs half the memory and about 70% more
 time (0.15 mm scan: 7.8 GB and 53 s against 8.6 GB and 31 s). Each box is also
 accepted or rolled back on its own, so a side the pass improved is no longer
-dragged back by the other one failing. That half costs half the memory, and
-the sound side then comes through untouched instead of being replaced and
+dragged back by the other one failing. With one side broken only that half
+is redone, at half the memory, and the sound side comes through untouched instead of being replaced and
 rescued by the rollback. Measured on the 0.15 mm scan: the weak side came out
 at 338 mm3 against 305 for the whole-jaw box, the sound side stayed bit-exact
 at 457, and the peak dropped from 11.0 to 7.6 GB (6.5 GB without the pass).
