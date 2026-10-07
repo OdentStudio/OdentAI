@@ -181,11 +181,13 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
             hi = np.argwhere(half)
             span = float(hi[:, 1].max() - hi[:, 1].min() + 1) * spacing[1]
         sides.append({"vol": float(half.sum()) * vox, "span": span,
-                      "comps": _mesh.count_components(half)})
+                      "comps": _mesh.count_components(half),
+                      "x": (sl.start or 0, sl.stop if sl.stop is not None else canal.shape[2])})
     if not sides:
         return out
 
     vols = [x["vol"] for x in sides]
+    out["side_list"] = sides
     out.update(sides=len(sides), vol_min=min(vols),
                asym=min(vols) / max(vols) if max(vols) > 0 else 0.0,
                span_frac=min(x["span"] for x in sides) / span_mand if span_mand else 0.0,
@@ -204,8 +206,27 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
     return out
 
 
+def _weak_side(health: dict, thr: dict) -> Optional[tuple]:
+    """The half of the grid to redo, when exactly one side is the problem.
+
+    Half the box is half the memory and half the time, and the second pass has
+    nothing to fix on a side that already looks sound. Both sides bad, or only
+    one side in the frame, and the whole mandible is taken as before.
+    """
+    sides = health.get("side_list") or []
+    if len(sides) != 2:
+        return None
+    sound = [s for s in sides
+             if s["vol"] >= thr["side_volume_below_cm3"]
+             and s["comps"] <= thr["components_per_side_above"]]
+    if len(sound) != 1:
+        return None
+    weak = sides[0] if sides[1] is sound[0] else sides[1]
+    return weak["x"]
+
+
 def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
-                cfg: dict, opts: "Options", log) -> np.ndarray:
+                cfg: dict, opts: "Options", log, x_range=None) -> np.ndarray:
     """The canal predicted on a finer grid around the mandible, as a mask on `grid`.
 
     2026-10-05, a 0.15 mm scan: at 0.3 mm the left canal came out as two short
@@ -223,7 +244,17 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
     # 0.25 mm and 324 s (2026-10-06, a 750-slice scan).
     cc = sitk.RelabelComponent(sitk.ConnectedComponent(
         sitk.GetImageFromArray((labels == 1).astype(np.uint8))), sortByObjectSize=True)
-    idx = np.argwhere(sitk.GetArrayViewFromImage(cc) == 1)[:, ::-1]   # z, y, x -> x, y, z
+    big = sitk.GetArrayViewFromImage(cc) == 1
+    if x_range is not None:
+        # Only the broken side is redone. The margin below still reaches 15 mm
+        # past the midline, so the network keeps the context it needs — a tight
+        # crop to the mandible alone loses two thirds of the canal (2026-10-05).
+        keep = np.zeros_like(big)
+        keep[:, :, x_range[0]:x_range[1]] = big[:, :, x_range[0]:x_range[1]]
+        big = keep
+        if not big.any():
+            return None
+    idx = np.argwhere(big)[:, ::-1]                                  # z, y, x -> x, y, z
     pts = np.array([grid.TransformIndexToPhysicalPoint([int(v) for v in c])
                     for c in (idx.min(0), idx.max(0))])
     m = float(opts.canal_fine_margin_mm)
@@ -242,7 +273,7 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
     # the rest the onnxruntime arena for the new input shape and the resampling
     # copies. An honest skip beats paging to disk: the other eight classes are
     # already done, and the canal from the first pass stays.
-    need = n * (cfg["num_classes"] * (2 if n > 150_000_000 else 4) + 44) / 2 ** 30
+    need = n * (cfg["num_classes"] * 2 + 44) / 2 ** 30
     free = _free_ram_gb()
     log(f"  fine pass needs about {need:.1f} GB"
         + (f", {free:.1f} GB free" if free else ""))
@@ -253,13 +284,20 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
     v = _io.normalize_ct(sitk.GetArrayFromImage(fine).astype(np.float32),
                          _norm_props(cfg["normalization"]))
     log(f"  fine pass: {opts.canal_fine_spacing} mm, {v.shape}")
+    # float16 whatever the size: all this pass does with the logits is an
+    # argmax, and the gap between competing classes is orders of magnitude
+    # wider than the half-precision step. Halves the biggest buffer here.
     logits, _ = _infer.predict_logits_auto(sess, v, opts.tile or cfg["tile"], opts.overlap,
-                                           None, np.float16 if v.size > 150e6 else np.float32, log)
+                                           None, np.float16, log)
     c = sitk.GetImageFromArray((logits.argmax(0) == 5).astype(np.uint8))
     del logits
     c.CopyInformation(fine)
-    return sitk.GetArrayFromImage(sitk.Resample(c, grid, sitk.Transform(),
-                                                sitk.sitkNearestNeighbor, 0)).astype(bool)
+    back = lambda img: sitk.GetArrayFromImage(sitk.Resample(
+        img, grid, sitk.Transform(), sitk.sitkNearestNeighbor, 0)).astype(bool)
+    # What the box covered, so the merge leaves the untouched side alone.
+    ones = sitk.Image(fine.GetSize(), sitk.sitkUInt8) + 1
+    ones.CopyInformation(fine)
+    return back(c), back(ones)
 
 
 def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
@@ -299,10 +337,14 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     log("  canal looks broken (" + "; ".join(health["reasons"]) + ") — second pass"
         if health["reasons"] else "  canal second pass (forced)")
     if opts.canal_refine_mode == "fine" and src is not None:
-        canal2 = _fine_canal(src, grid, labels, sess, cfg, opts, log)
-        if canal2 is None:
+        side = None if opts.canal_refine_force else _weak_side(health, thr)
+        if side is not None:
+            log(f"  only the broken side is redone (x {side[0]}..{side[1]})")
+        got = _fine_canal(src, grid, labels, sess, cfg, opts, log, side)
+        if got is None:
             return labels
-        return _merge_canal(labels, canal2, health, spacing, thr, log)
+        canal2, covered = got
+        return _merge_canal(labels, canal2, health, spacing, thr, log, covered)
     idx = np.argwhere(mand)
     pad = int(ref.get("margin_voxels", 20))
     lo = np.maximum(idx.min(0) - pad, 0)
@@ -322,12 +364,14 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     return _merge_canal(labels, canal2, health, spacing, thr, log)
 
 
-def _merge_canal(labels, canal2, health, spacing, thr, log) -> np.ndarray:
+def _merge_canal(labels, canal2, health, spacing, thr, log, covered=None) -> np.ndarray:
     out = labels.copy()
     # Take the second pass's canal only where the first pass found nothing
     # more definite: teeth and the upper skull are not given away.
     take = canal2 & ((labels == 0) | (labels == 5) | (labels == 1))
-    out[out == 5] = 0
+    # The first pass's canal is dropped only where the second pass actually
+    # looked. Without this a one-sided pass would erase the healthy side.
+    out[(out == 5) if covered is None else ((out == 5) & covered)] = 0
     out[take] = 5
     after = _canal_health(out, spacing, thr)
     log(f"  after the second pass: {after['volume_cm3']:.2f} cm3"
