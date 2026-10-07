@@ -1,0 +1,2690 @@
+{
+ "A_match": {
+  "dv_img0001": {
+   "Mandible": 0.9892844989688483,
+   "Upper Skull": 0.9816283809448221,
+   "Upper Teeth": 0.979059346802714,
+   "Lower Teeth": 0.9777775237158839,
+   "Mandibular Canal": 0.9231623709103532,
+   "Maxillary Sinus": 0.9880725310626228,
+   "Nasal Cavity": 0.9595517473540855,
+   "Pharynx": 0.9811199554675504,
+   "Soft Palate": 0.9298554263009239
+  },
+  "dv_img0006": {
+   "Mandible": 0.987814707920984,
+   "Upper Skull": 0.9771555538578095,
+   "Upper Teeth": 0.9785864038364219,
+   "Lower Teeth": 0.9794869705030268,
+   "Mandibular Canal": 0.9123546398189339,
+   "Maxillary Sinus": 0.9864125331825097,
+   "Nasal Cavity": 0.9650717924381712,
+   "Pharynx": 0.9794234881396562,
+   "Soft Palate": 0.9575702785883792
+  },
+  "dv_img0011": {
+   "Mandible": 0.9889880054934925,
+   "Upper Skull": 0.9762101610349735,
+   "Upper Teeth": 0.9793701119405276,
+   "Lower Teeth": 0.9758770210296862,
+   "Mandibular Canal": 0.9069740500463392,
+   "Maxillary Sinus": 0.972357583721837,
+   "Nasal Cavity": 0.9643838712143116,
+   "Pharynx": 0.9779726519888531,
+   "Soft Palate": 0.9521939769771873
+  },
+  "dv_img0016": {
+   "Mandible": 0.9910167548464273,
+   "Upper Skull": 0.9781801084988133,
+   "Upper Teeth": 0.9829691741199604,
+   "Lower Teeth": 0.9814750530714695,
+   "Mandibular Canal": 0.9499351692373192,
+   "Maxillary Sinus": 0.9898746086589777,
+   "Nasal Cavity": 0.9439544726573094,
+   "Pharynx": 0.9786397552500796,
+   "Soft Palate": 0.9454107701041716
+  },
+  "dv_img0021": {
+   "Mandible": 0.9863466265051818,
+   "Upper Skull": 0.975038684868821,
+   "Upper Teeth": 0.9759949163127198,
+   "Lower Teeth": 0.9787591744131942,
+   "Mandibular Canal": 0.923097400100565,
+   "Maxillary Sinus": 0.9760228426516925,
+   "Nasal Cavity": 0.9653447438228029,
+   "Pharynx": 0.9563303943826109,
+   "Soft Palate": 0.9454945199186191
+  },
+  "dv_img0026": {
+   "Mandible": 0.9857167272640492,
+   "Upper Skull": 0.9732376106119192,
+   "Upper Teeth": 0.9843329694494211,
+   "Lower Teeth": 0.9850114049987867,
+   "Mandibular Canal": 0.9481257494395495,
+   "Maxillary Sinus": 0.9913820645840477,
+   "Nasal Cavity": 0.9670736376673195,
+   "Pharynx": 0.9847913459039012,
+   "Soft Palate": 0.953410917790105
+  },
+  "dv_img0032": {
+   "Mandible": 0.9901770227636181,
+   "Upper Skull": 0.9786005946455673,
+   "Upper Teeth": 0.9752259528065528,
+   "Lower Teeth": 0.970706471863757,
+   "Mandibular Canal": 0.9446924032577186,
+   "Maxillary Sinus": 0.9848118347621857,
+   "Nasal Cavity": 0.9638561481934104,
+   "Pharynx": 0.9789823477266685,
+   "Soft Palate": 0.9612991545389917
+  },
+  "dv_img0037": {
+   "Mandible": 0.9877168169775298,
+   "Upper Skull": 0.9749520998960767,
+   "Upper Teeth": 0.9639685586496168,
+   "Lower Teeth": 0.9648953233601358,
+   "Mandibular Canal": 0.9578167766865239,
+   "Maxillary Sinus": 0.9795111795788123,
+   "Nasal Cavity": 0.9645968724573355,
+   "Pharynx": 0.9819140558719496,
+   "Soft Palate": 0.9521651438569206
+  },
+  "dv_img0042": {
+   "Mandible": 0.990260086163943,
+   "Upper Skull": 0.9744153622813447,
+   "Upper Teeth": 0.973476125738701,
+   "Lower Teeth": 0.9648059613154155,
+   "Mandibular Canal": 0.946900167022209,
+   "Maxillary Sinus": 0.98288481048457,
+   "Nasal Cavity": 0.9635615777768612,
+   "Pharynx": 0.9809029105578446,
+   "Soft Palate": 0.9481081258891931
+  },
+  "dv_img0047": {
+   "Mandible": 0.9885501458286464,
+   "Upper Skull": 0.9786974900649335,
+   "Upper Teeth": 0.9784231285604538,
+   "Lower Teeth": 0.9765263999299214,
+   "Mandibular Canal": 0.9556669538654343,
+   "Maxillary Sinus": 0.986907243501761,
+   "Nasal Cavity": 0.947355082973299,
+   "Pharynx": 0.9757656882775236,
+   "Soft Palate": 0.9563524123215876
+  },
+  "dv_img0053": {
+   "Mandible": 0.9895638424180593,
+   "Upper Skull": 0.9755788900214063,
+   "Upper Teeth": 0.9817518125502086,
+   "Lower Teeth": 0.9795914808122946,
+   "Mandibular Canal": 0.9531772575250836,
+   "Maxillary Sinus": 0.9880916233434823,
+   "Nasal Cavity": 0.9585346355705398,
+   "Pharynx": 0.9782944358571634,
+   "Soft Palate": 0.9416369743177145
+  },
+  "dv_img0059": {
+   "Mandible": 0.9896994286622022,
+   "Upper Skull": 0.9675609719497695,
+   "Upper Teeth": 0.983585478903763,
+   "Lower Teeth": 0.9812846592980795,
+   "Mandibular Canal": 0.9499220018464869,
+   "Maxillary Sinus": 0.9608664636420586,
+   "Nasal Cavity": 0.9310192347086539,
+   "Pharynx": 0.9823552397286718,
+   "Soft Palate": 0.9504068079234108
+  },
+  "dv_img0064": {
+   "Mandible": 0.9823417585373182,
+   "Upper Skull": 0.97481012671141,
+   "Upper Teeth": 0.9826249182287334,
+   "Lower Teeth": 0.9783463285849218,
+   "Mandibular Canal": 0.9504674756315894,
+   "Maxillary Sinus": 0.9822546015915288,
+   "Nasal Cavity": 0.9618083446216245,
+   "Pharynx": 0.9774353595090397,
+   "Soft Palate": 0.942806376863808
+  },
+  "dv_img0069": {
+   "Mandible": 0.9853585180473768,
+   "Upper Skull": 0.9714491205845893,
+   "Upper Teeth": 0.9831109218247208,
+   "Lower Teeth": 0.9831544900736955,
+   "Mandibular Canal": 0.9477289986912052,
+   "Maxillary Sinus": 0.9872890512714845,
+   "Nasal Cavity": 0.9669621623544654,
+   "Pharynx": 0.9779634416227145,
+   "Soft Palate": 0.9401871766801898
+  },
+  "dv_img0074": {
+   "Mandible": 0.9893150605864692,
+   "Upper Skull": 0.978064992066512,
+   "Upper Teeth": 0.9822495913478837,
+   "Lower Teeth": 0.9816812934082405,
+   "Mandibular Canal": 0.955106797857319,
+   "Maxillary Sinus": 0.986980329756969,
+   "Nasal Cavity": 0.9657575474293109,
+   "Pharynx": 0.9791554749753782,
+   "Soft Palate": 0.9649661298329713
+  },
+  "dv_img0079": {
+   "Mandible": 0.9863202227227923,
+   "Upper Skull": 0.9735962882263246,
+   "Upper Teeth": 0.9811918807831587,
+   "Lower Teeth": 0.9789503525993125,
+   "Mandibular Canal": 0.8933436703953926,
+   "Maxillary Sinus": 0.9880372815587186,
+   "Nasal Cavity": 0.9699183121375997,
+   "Pharynx": 0.9841285407298858,
+   "Soft Palate": 0.9438461328306423
+  },
+  "dv_img0085": {
+   "Mandible": 0.9845315489472272,
+   "Upper Skull": 0.9737955861835373,
+   "Upper Teeth": 0.9782954781074613,
+   "Lower Teeth": 0.9693495951987006,
+   "Mandibular Canal": 0.9085515181682429,
+   "Maxillary Sinus": 0.9686708403786359,
+   "Nasal Cavity": 0.9561472477647137,
+   "Pharynx": 0.981243598479763,
+   "Soft Palate": 0.9432602271163562
+  },
+  "dv_img0090": {
+   "Mandible": 0.9874698926162814,
+   "Upper Skull": 0.9747902423083046,
+   "Upper Teeth": 0.9773327570474956,
+   "Lower Teeth": 0.9712435443625602,
+   "Mandibular Canal": 0.9432889628397116,
+   "Maxillary Sinus": 0.9870743889059812,
+   "Nasal Cavity": 0.9679255245525988,
+   "Pharynx": 0.9824538040596694,
+   "Soft Palate": 0.9586094418078432
+  },
+  "dv_img0095": {
+   "Mandible": 0.9862925579474631,
+   "Upper Skull": 0.9699180717369399,
+   "Upper Teeth": 0.9787843016181464,
+   "Lower Teeth": 0.9753377898672785,
+   "Mandibular Canal": 0.9337169783782657,
+   "Maxillary Sinus": 0.9875711027750875,
+   "Nasal Cavity": 0.9638458908927311,
+   "Pharynx": 0.978430647487335,
+   "Soft Palate": 0.9427604261562509
+  },
+  "dv_img0101": {
+   "Mandible": 0.9873257631191451,
+   "Upper Skull": 0.9783875812194482,
+   "Upper Teeth": 0.9827989883779807,
+   "Lower Teeth": 0.9804295495959262,
+   "Mandibular Canal": 0.9476366625565146,
+   "Maxillary Sinus": 0.9831429224805762,
+   "Nasal Cavity": 0.9598257511700633,
+   "Pharynx": 0.977230259433823,
+   "Soft Palate": 0.942326936333919
+  },
+  "tf3_ToothFairy3F_001": {
+   "Mandible": 0.9872720233238824,
+   "Upper Skull": 0.9642841658935029,
+   "Upper Teeth": 0.9715361635881685,
+   "Lower Teeth": 0.9727144528445447,
+   "Mandibular Canal": 0.8589139822156688,
+   "Maxillary Sinus": 0.9837536802525628,
+   "Pharynx": 0.9694156791997478,
+   "Soft Palate": 0.9353950652224252
+  },
+  "tf3_ToothFairy3F_011": {
+   "Mandible": 0.9793816011398966,
+   "Upper Skull": 0.9485772166326184,
+   "Upper Teeth": 0.8999668086518781,
+   "Lower Teeth": 0.9282235414272948,
+   "Mandibular Canal": 0.9022802052414809,
+   "Maxillary Sinus": 0.9878763134710016,
+   "Nasal Cavity": 0.9037442593155866,
+   "Pharynx": 0.9731243044662695,
+   "Soft Palate": 0.9060054208801854
+  },
+  "tf3_ToothFairy3F_023": {
+   "Mandible": 0.9882501325999904,
+   "Upper Skull": 0.9764011554781551,
+   "Upper Teeth": 0.9875041067387019,
+   "Lower Teeth": 0.9883271759908097,
+   "Mandibular Canal": 0.9346228801762434,
+   "Maxillary Sinus": 0.7319619281547436,
+   "Pharynx": 0.9896489455852248,
+   "Soft Palate": 0.965649482276886
+  },
+  "tf3_ToothFairy3F_033": {
+   "Mandible": 0.9875154395162986,
+   "Upper Skull": 0.9782368823970508,
+   "Upper Teeth": 0.9850688362059395,
+   "Lower Teeth": 0.986173344188933,
+   "Mandibular Canal": 0.9179436560462143,
+   "Maxillary Sinus": 0.9513852587558809,
+   "Pharynx": 0.9838930482563888,
+   "Soft Palate": 0.9142776944725548
+  },
+  "tf3_ToothFairy3F_045": {
+   "Mandible": 0.9833040683088956,
+   "Upper Skull": 0.9433002127072911,
+   "Upper Teeth": 0.9589523292644412,
+   "Lower Teeth": 0.9683916055734478,
+   "Mandibular Canal": 0.9200307464556169,
+   "Maxillary Sinus": 0.9706496035609959,
+   "Pharynx": 0.9750977220939111,
+   "Soft Palate": 0.9570256344387742
+  },
+  "tf3_ToothFairy3F_055": {
+   "Mandible": 0.9896778883617006,
+   "Upper Skull": 0.9767512748524609,
+   "Upper Teeth": 0.9843523593314984,
+   "Lower Teeth": 0.965192647246504,
+   "Mandibular Canal": 0.9084543968415533,
+   "Maxillary Sinus": 0.978231884057971,
+   "Pharynx": 0.9867333957846052,
+   "Soft Palate": 0.9278077541815158
+  },
+  "tf3_ToothFairy3F_065": {
+   "Mandible": 0.9851366628279221,
+   "Upper Skull": 0.9572985709684528,
+   "Upper Teeth": 0.9726015185941613,
+   "Lower Teeth": 0.9611128127954827,
+   "Mandibular Canal": 0.8933482827265863,
+   "Maxillary Sinus": 0.9907666004478272,
+   "Nasal Cavity": 0.922081292934886,
+   "Pharynx": 0.9881534044485154,
+   "Soft Palate": 0.949421459374066
+  },
+  "tf3_ToothFairy3P_008": {
+   "Mandible": 0.9866071505050114,
+   "Upper Skull": 0.9509090216107025,
+   "Upper Teeth": 0.97944831232925,
+   "Lower Teeth": 0.9879822638082345,
+   "Mandibular Canal": 0.9086958224031949,
+   "Pharynx": 0.9179685668592384,
+   "Soft Palate": 0.9239874289346375
+  },
+  "tf3_ToothFairy3P_018": {
+   "Mandible": 0.9900364095556433,
+   "Upper Skull": 0.9381586027193529,
+   "Upper Teeth": 0.9760538139885204,
+   "Lower Teeth": 0.9891109771918315,
+   "Mandibular Canal": 0.9035658038202157,
+   "Maxillary Sinus": 0.0,
+   "Nasal Cavity": 0.32413793103448274,
+   "Pharynx": 0.9804532228717082,
+   "Soft Palate": 0.9320000985148881
+  },
+  "tf3_ToothFairy3P_028": {
+   "Mandible": 0.9873617889826979,
+   "Upper Skull": 0.8778857461162345,
+   "Upper Teeth": 0.9442930577218355,
+   "Lower Teeth": 0.9904900734838991,
+   "Mandibular Canal": 0.8394123748913622,
+   "Pharynx": 0.9846907342625216,
+   "Soft Palate": 0.9258950609092598
+  },
+  "tf3_ToothFairy3P_038": {
+   "Mandible": 0.9879551295294686,
+   "Lower Teeth": 0.9102293644061015,
+   "Mandibular Canal": 0.9175009948269002,
+   "Pharynx": 0.9887183900617061,
+   "Soft Palate": 0.8760774733903333
+  },
+  "tf3_ToothFairy3P_050": {
+   "Mandible": 0.9868972395167608,
+   "Upper Skull": 0.5740402193784278,
+   "Upper Teeth": 0.71799002359857,
+   "Lower Teeth": 0.9833853260026542,
+   "Mandibular Canal": 0.9018277485461091,
+   "Pharynx": 0.9791298011219146,
+   "Soft Palate": 0.8466362412581673
+  },
+  "tf3_ToothFairy3P_061": {
+   "Mandible": 0.9883713936091835,
+   "Upper Skull": 0.907108591365024,
+   "Upper Teeth": 0.7302934291872796,
+   "Lower Teeth": 0.8667220756120351,
+   "Mandibular Canal": 0.9055620818223606,
+   "Pharynx": 0.9802197879883637,
+   "Soft Palate": 0.9382985334706238
+  },
+  "tf3_ToothFairy3P_077": {
+   "Mandible": 0.9878204013884294,
+   "Upper Skull": 0.21686746987951808,
+   "Upper Teeth": NaN,
+   "Mandibular Canal": 0.8693210732272273,
+   "Pharynx": 0.9741565090199903,
+   "Soft Palate": 0.8950739489926633
+  },
+  "tf3_ToothFairy3P_088": {
+   "Mandible": 0.9891285121145102,
+   "Upper Skull": 0.8850987432675045,
+   "Upper Teeth": 0.7982108769374625,
+   "Lower Teeth": 0.974804138869382,
+   "Mandibular Canal": 0.9214705312762249,
+   "Pharynx": 0.9789422050197392,
+   "Soft Palate": 0.9093834613165254
+  },
+  "tf3_ToothFairy3P_098": {
+   "Mandible": 0.9848521134883692,
+   "Upper Skull": 0.9222520107238605,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.975092525685752,
+   "Mandibular Canal": 0.8656663093962129,
+   "Pharynx": 0.9838393178199003,
+   "Soft Palate": 0.9146348400896545
+  },
+  "tf3_ToothFairy3P_108": {
+   "Mandible": 0.9848171551169321,
+   "Upper Skull": 0.004704037632301058,
+   "Upper Teeth": 0.6398672990695384,
+   "Lower Teeth": 0.9553875512458798,
+   "Mandibular Canal": 0.8904419899204523,
+   "Pharynx": 0.9780785034006796,
+   "Soft Palate": 0.8287078869239706
+  },
+  "tf3_ToothFairy3P_118": {
+   "Mandible": 0.986281349740102,
+   "Upper Teeth": 0.47730571953934,
+   "Lower Teeth": 0.9578286885700039,
+   "Mandibular Canal": 0.8765044791430582,
+   "Pharynx": 0.9794560091335457,
+   "Soft Palate": 0.8552822597370277
+  },
+  "tf3_ToothFairy3P_128": {
+   "Mandible": 0.9882640393247408,
+   "Upper Skull": 0.9146415094339623,
+   "Upper Teeth": 0.9636122735865824,
+   "Lower Teeth": 0.9838841521548127,
+   "Mandibular Canal": 0.8598355323514203,
+   "Pharynx": 0.9703644292271296,
+   "Soft Palate": 0.9252662138652045
+  },
+  "tf3_ToothFairy3P_138": {
+   "Mandible": 0.9872887013247587,
+   "Upper Skull": 0.03187250996015936,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9867318786489065,
+   "Mandibular Canal": 0.9013918134661805,
+   "Pharynx": 0.9726902681058112,
+   "Soft Palate": 0.9343969381713609
+  },
+  "tf3_ToothFairy3P_148": {
+   "Mandible": 0.9880642114602952,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9771807970818448,
+   "Mandibular Canal": 0.9196134724459072,
+   "Pharynx": 0.981607317071364,
+   "Soft Palate": 0.9265971632925203
+  },
+  "tf3_ToothFairy3P_197": {
+   "Mandible": 0.9896899608342126,
+   "Upper Skull": 0.9498408411305103,
+   "Upper Teeth": 0.9855323220037963,
+   "Lower Teeth": 0.9854787533412362,
+   "Mandibular Canal": 0.8974684645498042,
+   "Pharynx": 0.9861794262437782,
+   "Soft Palate": 0.9158536466029298
+  },
+  "tf3_ToothFairy3P_207": {
+   "Mandible": 0.9874675220286286,
+   "Upper Skull": 0.4182692307692308,
+   "Upper Teeth": 0.9552763039498589,
+   "Lower Teeth": 0.9808551920375502,
+   "Mandibular Canal": 0.9224157294957995,
+   "Pharynx": 0.9772900451594404,
+   "Soft Palate": 0.8693818249988283
+  },
+  "tf3_ToothFairy3P_217": {
+   "Mandible": 0.9889510440195218,
+   "Upper Skull": 0.9164834235453315,
+   "Upper Teeth": 0.9865654251489167,
+   "Lower Teeth": 0.9872869535917187,
+   "Mandibular Canal": 0.9082436273824502,
+   "Pharynx": 0.9878977969327045,
+   "Soft Palate": 0.9136808083446238
+  },
+  "tf3_ToothFairy3P_237": {
+   "Mandible": 0.9889867219075041,
+   "Upper Teeth": 0.978102585510515,
+   "Lower Teeth": 0.9846475597262135,
+   "Mandibular Canal": 0.8495272580969624,
+   "Pharynx": 0.9809603191194428,
+   "Soft Palate": 0.9016232797920839
+  },
+  "tf3_ToothFairy3P_247": {
+   "Mandible": 0.9911544061266306,
+   "Upper Teeth": 0.9263266842303349,
+   "Lower Teeth": 0.9835439894388749,
+   "Mandibular Canal": 0.8632493374939237,
+   "Pharynx": 0.980014695297056,
+   "Soft Palate": 0.830194496544282
+  },
+  "tf3_ToothFairy3P_257": {
+   "Mandible": 0.9812907459960545,
+   "Upper Skull": 0.7731322823851954,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.918721102274829,
+   "Mandibular Canal": 0.9308313277176093,
+   "Pharynx": 0.9712161048719625,
+   "Soft Palate": 0.8252314407406104
+  },
+  "tf3_ToothFairy3P_323": {
+   "Mandible": 0.9898712267387664,
+   "Upper Teeth": 0.8629159231657395,
+   "Lower Teeth": 0.9837985899180461,
+   "Mandibular Canal": 0.9147591243390344,
+   "Pharynx": 0.9803562452590501,
+   "Soft Palate": 0.9005391763221292
+  },
+  "tf3_ToothFairy3P_333": {
+   "Mandible": 0.9902293005900447,
+   "Upper Skull": 0.9700826191820188,
+   "Upper Teeth": 0.9888785365043532,
+   "Lower Teeth": 0.989780724874918,
+   "Mandibular Canal": 0.893390959841527,
+   "Pharynx": 0.977659525078804,
+   "Soft Palate": 0.9103914464136917
+  },
+  "tf3_ToothFairy3P_343": {
+   "Mandible": 0.9907209536700554,
+   "Upper Skull": 0.9716522472803724,
+   "Upper Teeth": 0.9869647244647245,
+   "Lower Teeth": 0.988616235297793,
+   "Mandibular Canal": 0.8862084182654927,
+   "Nasal Cavity": 0.47212047212047215,
+   "Pharynx": 0.9817783367825711,
+   "Soft Palate": 0.9564841781471907
+  },
+  "tf3_ToothFairy3P_353": {
+   "Mandible": 0.9864482940615802,
+   "Upper Teeth": 0.9642057569296375,
+   "Lower Teeth": 0.9775197242560166,
+   "Mandibular Canal": 0.9129401740213349,
+   "Pharynx": 0.9707636830592118,
+   "Soft Palate": 0.9130846568556025
+  },
+  "tf3_ToothFairy3P_363": {
+   "Mandible": 0.9874257710924955,
+   "Upper Skull": 0.730410447761194,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9865388854726241,
+   "Mandibular Canal": 0.9269160049301893,
+   "Pharynx": 0.9671216399875615,
+   "Soft Palate": 0.8564867967853043
+  },
+  "tf3_ToothFairy3P_373": {
+   "Mandible": 0.9895569877121111,
+   "Upper Skull": 0.8513806172171088,
+   "Upper Teeth": 0.9732342309410665,
+   "Lower Teeth": 0.9843022470058744,
+   "Mandibular Canal": 0.9031554092730395,
+   "Pharynx": 0.984650222401941,
+   "Soft Palate": 0.9485916085092071
+  },
+  "tf3_ToothFairy3P_385": {
+   "Mandible": 0.9863532407911602,
+   "Upper Skull": 0.4280282455187398,
+   "Upper Teeth": 0.003946861763573354,
+   "Mandibular Canal": 0.9109539121114684,
+   "Pharynx": 0.9732452040184861,
+   "Soft Palate": 0.9452881214894945
+  },
+  "tf3_ToothFairy3P_395": {
+   "Mandible": 0.9897475363515401,
+   "Upper Skull": 0.8178623467900917,
+   "Upper Teeth": 0.9795767035514916,
+   "Lower Teeth": 0.9908708513473978,
+   "Mandibular Canal": 0.9219251336898395,
+   "Pharynx": 0.974483717433375,
+   "Soft Palate": 0.9571677633428941
+  },
+  "tf3_ToothFairy3P_405": {
+   "Mandible": 0.9904297216333059,
+   "Upper Skull": NaN,
+   "Upper Teeth": 0.969940621045459,
+   "Lower Teeth": 0.9819462178654585,
+   "Mandibular Canal": 0.9189117199391172,
+   "Pharynx": 0.9464576908270651,
+   "Soft Palate": 0.9220423612788918
+  },
+  "tf3_ToothFairy3P_415": {
+   "Mandible": 0.9904721737097308,
+   "Upper Skull": 0.6060606060606061,
+   "Upper Teeth": 0.9703060560017365,
+   "Lower Teeth": 0.9835165312595039,
+   "Mandibular Canal": 0.9215650502912881,
+   "Pharynx": 0.9901273339942448,
+   "Soft Palate": 0.21721409733876768
+  },
+  "tf3_ToothFairy3P_426": {
+   "Mandible": 0.986912453071228,
+   "Upper Skull": 0.2184228890439637,
+   "Upper Teeth": 0.856150558062218,
+   "Lower Teeth": 0.9824010161616499,
+   "Mandibular Canal": 0.9141714938402545,
+   "Pharynx": 0.9783244519518819,
+   "Soft Palate": 0.9098290373947889
+  },
+  "tf3_ToothFairy3P_436": {
+   "Mandible": 0.987394283880727,
+   "Upper Skull": 0.7201834862385321,
+   "Lower Teeth": NaN,
+   "Mandibular Canal": 0.9059890757717943,
+   "Pharynx": 0.9829185301345851,
+   "Soft Palate": 0.9156350548072204
+  },
+  "tf3_ToothFairy3P_447": {
+   "Mandible": 0.9916491775590609,
+   "Upper Skull": 0.9052562045862036,
+   "Upper Teeth": 0.9844106463878327,
+   "Lower Teeth": 0.987901671186391,
+   "Mandibular Canal": 0.9043680992389918,
+   "Pharynx": 0.9785825589463029,
+   "Soft Palate": 0.8964594468025006
+  },
+  "tf3_ToothFairy3P_458": {
+   "Mandible": 0.9899188489344735,
+   "Upper Skull": 0.9011720445666329,
+   "Upper Teeth": 0.9729796843232505,
+   "Lower Teeth": 0.9893689265249995,
+   "Mandibular Canal": 0.9161717316223754,
+   "Pharynx": 0.9812579298012585,
+   "Soft Palate": 0.8392661951983986
+  },
+  "tf3_ToothFairy3P_468": {
+   "Mandible": 0.9870964485191405,
+   "Upper Skull": 0.0,
+   "Lower Teeth": 0.9862010686429914,
+   "Mandibular Canal": 0.8974692470422314,
+   "Pharynx": 0.9866015004408847,
+   "Soft Palate": 0.8632841224051134
+  },
+  "tf3_ToothFairy3P_480": {
+   "Mandible": 0.9867694417597948,
+   "Upper Skull": 0.853988603988604,
+   "Upper Teeth": 0.9512356090049131,
+   "Lower Teeth": 0.9864012815707457,
+   "Mandibular Canal": 0.9007796384994581,
+   "Pharynx": 0.9724403378089861,
+   "Soft Palate": 0.9421733633420909
+  },
+  "tf3_ToothFairy3P_493": {
+   "Mandible": 0.9885193954160858,
+   "Upper Skull": 0.963972367155391,
+   "Upper Teeth": 0.9846190476190476,
+   "Lower Teeth": 0.9896259011577747,
+   "Mandibular Canal": 0.9260548853941484,
+   "Pharynx": 0.9813945435921112,
+   "Soft Palate": 0.9516928569786774
+  },
+  "tf3_ToothFairy3P_504": {
+   "Mandible": 0.9880274590754164,
+   "Upper Skull": 0.8069761960876738,
+   "Upper Teeth": 0.9709243510644211,
+   "Lower Teeth": 0.9849439863783521,
+   "Mandibular Canal": 0.9321601632236675,
+   "Pharynx": 0.9771627412950787,
+   "Soft Palate": 0.6526138895992402
+  },
+  "tf3_ToothFairy3P_514": {
+   "Mandible": 0.9863520113109895,
+   "Upper Skull": 0.5471698113207547,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.916398516234274,
+   "Mandibular Canal": 0.9264341213423707,
+   "Pharynx": 0.9761729399231881,
+   "Soft Palate": 0.838790486802167
+  },
+  "tf3_ToothFairy3P_526": {
+   "Mandible": 0.9871951986200814,
+   "Upper Skull": 0.0985352862849534,
+   "Lower Teeth": 0.9859739444005137,
+   "Mandibular Canal": 0.9356120047077285,
+   "Pharynx": 0.9757744553916842,
+   "Soft Palate": 0.9196614303134639
+  },
+  "tf3_ToothFairy3P_538": {
+   "Mandible": 0.9887530535894524,
+   "Upper Skull": 0.9118058177143382,
+   "Upper Teeth": 0.9883024476214275,
+   "Lower Teeth": 0.9813586200785871,
+   "Mandibular Canal": 0.9215378497729223,
+   "Pharynx": 0.9882469642588378,
+   "Soft Palate": 0.9193462897526502
+  },
+  "tf3_ToothFairy3S_0000": {
+   "Mandible": 0.9817799339045252,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.8662935066398693,
+   "Mandibular Canal": 0.9082683966543629,
+   "Pharynx": 0.9146811405877456,
+   "Soft Palate": 0.8968976915759289
+  },
+  "tf3_ToothFairy3S_0010": {
+   "Mandible": 0.9882648314235791,
+   "Upper Skull": 0.9795624735668024,
+   "Upper Teeth": 0.9822430980263281,
+   "Lower Teeth": 0.9825287344607145,
+   "Mandibular Canal": 0.9501314957222278,
+   "Pharynx": 0.9793051225031478,
+   "Soft Palate": 0.9096592329900657
+  }
+ },
+ "B_fine": {
+  "dv_img0001": {
+   "Mandible": 0.9892844989688483,
+   "Upper Skull": 0.9816283809448221,
+   "Upper Teeth": 0.979059346802714,
+   "Lower Teeth": 0.9777775237158839,
+   "Mandibular Canal": 0.9231623709103532,
+   "Maxillary Sinus": 0.9880725310626228,
+   "Nasal Cavity": 0.9595517473540855,
+   "Pharynx": 0.9811199554675504,
+   "Soft Palate": 0.9298554263009239
+  },
+  "dv_img0006": {
+   "Mandible": 0.987814707920984,
+   "Upper Skull": 0.9771555538578095,
+   "Upper Teeth": 0.9785864038364219,
+   "Lower Teeth": 0.9794869705030268,
+   "Mandibular Canal": 0.9123546398189339,
+   "Maxillary Sinus": 0.9864125331825097,
+   "Nasal Cavity": 0.9650717924381712,
+   "Pharynx": 0.9794234881396562,
+   "Soft Palate": 0.9575702785883792
+  },
+  "dv_img0011": {
+   "Mandible": 0.9889880054934925,
+   "Upper Skull": 0.9762101610349735,
+   "Upper Teeth": 0.9793701119405276,
+   "Lower Teeth": 0.9758770210296862,
+   "Mandibular Canal": 0.9069740500463392,
+   "Maxillary Sinus": 0.972357583721837,
+   "Nasal Cavity": 0.9643838712143116,
+   "Pharynx": 0.9779726519888531,
+   "Soft Palate": 0.9521939769771873
+  },
+  "dv_img0016": {
+   "Mandible": 0.9910167548464273,
+   "Upper Skull": 0.9781801084988133,
+   "Upper Teeth": 0.9829691741199604,
+   "Lower Teeth": 0.9814750530714695,
+   "Mandibular Canal": 0.9499351692373192,
+   "Maxillary Sinus": 0.9898746086589777,
+   "Nasal Cavity": 0.9439544726573094,
+   "Pharynx": 0.9786397552500796,
+   "Soft Palate": 0.9454107701041716
+  },
+  "dv_img0021": {
+   "Mandible": 0.9863466265051818,
+   "Upper Skull": 0.975038684868821,
+   "Upper Teeth": 0.9759949163127198,
+   "Lower Teeth": 0.9787591744131942,
+   "Mandibular Canal": 0.923097400100565,
+   "Maxillary Sinus": 0.9760228426516925,
+   "Nasal Cavity": 0.9653447438228029,
+   "Pharynx": 0.9563303943826109,
+   "Soft Palate": 0.9454945199186191
+  },
+  "dv_img0026": {
+   "Mandible": 0.9857167272640492,
+   "Upper Skull": 0.9732376106119192,
+   "Upper Teeth": 0.9843329694494211,
+   "Lower Teeth": 0.9850114049987867,
+   "Mandibular Canal": 0.9481257494395495,
+   "Maxillary Sinus": 0.9913820645840477,
+   "Nasal Cavity": 0.9670736376673195,
+   "Pharynx": 0.9847913459039012,
+   "Soft Palate": 0.953410917790105
+  },
+  "dv_img0032": {
+   "Mandible": 0.9901770227636181,
+   "Upper Skull": 0.9786005946455673,
+   "Upper Teeth": 0.9752259528065528,
+   "Lower Teeth": 0.970706471863757,
+   "Mandibular Canal": 0.9446924032577186,
+   "Maxillary Sinus": 0.9848118347621857,
+   "Nasal Cavity": 0.9638561481934104,
+   "Pharynx": 0.9789823477266685,
+   "Soft Palate": 0.9612991545389917
+  },
+  "dv_img0037": {
+   "Mandible": 0.9877168169775298,
+   "Upper Skull": 0.9749520998960767,
+   "Upper Teeth": 0.9639685586496168,
+   "Lower Teeth": 0.9648953233601358,
+   "Mandibular Canal": 0.9578167766865239,
+   "Maxillary Sinus": 0.9795111795788123,
+   "Nasal Cavity": 0.9645968724573355,
+   "Pharynx": 0.9819140558719496,
+   "Soft Palate": 0.9521651438569206
+  },
+  "dv_img0042": {
+   "Mandible": 0.990260086163943,
+   "Upper Skull": 0.9744153622813447,
+   "Upper Teeth": 0.973476125738701,
+   "Lower Teeth": 0.9648059613154155,
+   "Mandibular Canal": 0.946900167022209,
+   "Maxillary Sinus": 0.98288481048457,
+   "Nasal Cavity": 0.9635615777768612,
+   "Pharynx": 0.9809029105578446,
+   "Soft Palate": 0.9481081258891931
+  },
+  "dv_img0047": {
+   "Mandible": 0.9885501458286464,
+   "Upper Skull": 0.9786974900649335,
+   "Upper Teeth": 0.9784231285604538,
+   "Lower Teeth": 0.9765263999299214,
+   "Mandibular Canal": 0.9556669538654343,
+   "Maxillary Sinus": 0.986907243501761,
+   "Nasal Cavity": 0.947355082973299,
+   "Pharynx": 0.9757656882775236,
+   "Soft Palate": 0.9563524123215876
+  },
+  "dv_img0053": {
+   "Mandible": 0.9895638424180593,
+   "Upper Skull": 0.9755788900214063,
+   "Upper Teeth": 0.9817518125502086,
+   "Lower Teeth": 0.9795914808122946,
+   "Mandibular Canal": 0.9531772575250836,
+   "Maxillary Sinus": 0.9880916233434823,
+   "Nasal Cavity": 0.9585346355705398,
+   "Pharynx": 0.9782944358571634,
+   "Soft Palate": 0.9416369743177145
+  },
+  "dv_img0059": {
+   "Mandible": 0.9896994286622022,
+   "Upper Skull": 0.9675609719497695,
+   "Upper Teeth": 0.983585478903763,
+   "Lower Teeth": 0.9812846592980795,
+   "Mandibular Canal": 0.9499220018464869,
+   "Maxillary Sinus": 0.9608664636420586,
+   "Nasal Cavity": 0.9310192347086539,
+   "Pharynx": 0.9823552397286718,
+   "Soft Palate": 0.9504068079234108
+  },
+  "dv_img0064": {
+   "Mandible": 0.9823417585373182,
+   "Upper Skull": 0.97481012671141,
+   "Upper Teeth": 0.9826249182287334,
+   "Lower Teeth": 0.9783463285849218,
+   "Mandibular Canal": 0.9504674756315894,
+   "Maxillary Sinus": 0.9822546015915288,
+   "Nasal Cavity": 0.9618083446216245,
+   "Pharynx": 0.9774353595090397,
+   "Soft Palate": 0.942806376863808
+  },
+  "dv_img0069": {
+   "Mandible": 0.9853585180473768,
+   "Upper Skull": 0.9714491205845893,
+   "Upper Teeth": 0.9831109218247208,
+   "Lower Teeth": 0.9831544900736955,
+   "Mandibular Canal": 0.9477289986912052,
+   "Maxillary Sinus": 0.9872890512714845,
+   "Nasal Cavity": 0.9669621623544654,
+   "Pharynx": 0.9779634416227145,
+   "Soft Palate": 0.9401871766801898
+  },
+  "dv_img0074": {
+   "Mandible": 0.9893150605864692,
+   "Upper Skull": 0.978064992066512,
+   "Upper Teeth": 0.9822495913478837,
+   "Lower Teeth": 0.9816812934082405,
+   "Mandibular Canal": 0.955106797857319,
+   "Maxillary Sinus": 0.986980329756969,
+   "Nasal Cavity": 0.9657575474293109,
+   "Pharynx": 0.9791554749753782,
+   "Soft Palate": 0.9649661298329713
+  },
+  "dv_img0079": {
+   "Mandible": 0.9863202227227923,
+   "Upper Skull": 0.9735962882263246,
+   "Upper Teeth": 0.9811918807831587,
+   "Lower Teeth": 0.9789503525993125,
+   "Mandibular Canal": 0.8933436703953926,
+   "Maxillary Sinus": 0.9880372815587186,
+   "Nasal Cavity": 0.9699183121375997,
+   "Pharynx": 0.9841285407298858,
+   "Soft Palate": 0.9438461328306423
+  },
+  "dv_img0085": {
+   "Mandible": 0.9845315489472272,
+   "Upper Skull": 0.9737955861835373,
+   "Upper Teeth": 0.9782954781074613,
+   "Lower Teeth": 0.9693495951987006,
+   "Mandibular Canal": 0.9085515181682429,
+   "Maxillary Sinus": 0.9686708403786359,
+   "Nasal Cavity": 0.9561472477647137,
+   "Pharynx": 0.981243598479763,
+   "Soft Palate": 0.9432602271163562
+  },
+  "dv_img0090": {
+   "Mandible": 0.9874698926162814,
+   "Upper Skull": 0.9747902423083046,
+   "Upper Teeth": 0.9773327570474956,
+   "Lower Teeth": 0.9712435443625602,
+   "Mandibular Canal": 0.9432889628397116,
+   "Maxillary Sinus": 0.9870743889059812,
+   "Nasal Cavity": 0.9679255245525988,
+   "Pharynx": 0.9824538040596694,
+   "Soft Palate": 0.9586094418078432
+  },
+  "dv_img0095": {
+   "Mandible": 0.9862925579474631,
+   "Upper Skull": 0.9699180717369399,
+   "Upper Teeth": 0.9787843016181464,
+   "Lower Teeth": 0.9753377898672785,
+   "Mandibular Canal": 0.9337169783782657,
+   "Maxillary Sinus": 0.9875711027750875,
+   "Nasal Cavity": 0.9638458908927311,
+   "Pharynx": 0.978430647487335,
+   "Soft Palate": 0.9427604261562509
+  },
+  "dv_img0101": {
+   "Mandible": 0.9873257631191451,
+   "Upper Skull": 0.9783875812194482,
+   "Upper Teeth": 0.9827989883779807,
+   "Lower Teeth": 0.9804295495959262,
+   "Mandibular Canal": 0.9476366625565146,
+   "Maxillary Sinus": 0.9831429224805762,
+   "Nasal Cavity": 0.9598257511700633,
+   "Pharynx": 0.977230259433823,
+   "Soft Palate": 0.942326936333919
+  },
+  "tf3_ToothFairy3F_001": {
+   "Mandible": 0.9872720233238824,
+   "Upper Skull": 0.9642841658935029,
+   "Upper Teeth": 0.9715361635881685,
+   "Lower Teeth": 0.9727144528445447,
+   "Mandibular Canal": 0.8589139822156688,
+   "Maxillary Sinus": 0.9837536802525628,
+   "Pharynx": 0.9694156791997478,
+   "Soft Palate": 0.9353950652224252
+  },
+  "tf3_ToothFairy3F_011": {
+   "Mandible": 0.9793816011398966,
+   "Upper Skull": 0.9485772166326184,
+   "Upper Teeth": 0.8999668086518781,
+   "Lower Teeth": 0.9282235414272948,
+   "Mandibular Canal": 0.9022802052414809,
+   "Maxillary Sinus": 0.9878763134710016,
+   "Nasal Cavity": 0.9037442593155866,
+   "Pharynx": 0.9731243044662695,
+   "Soft Palate": 0.9060054208801854
+  },
+  "tf3_ToothFairy3F_023": {
+   "Mandible": 0.9882501325999904,
+   "Upper Skull": 0.9764011554781551,
+   "Upper Teeth": 0.9875041067387019,
+   "Lower Teeth": 0.9883271759908097,
+   "Mandibular Canal": 0.9346228801762434,
+   "Maxillary Sinus": 0.7319619281547436,
+   "Pharynx": 0.9896489455852248,
+   "Soft Palate": 0.965649482276886
+  },
+  "tf3_ToothFairy3F_033": {
+   "Mandible": 0.9875154395162986,
+   "Upper Skull": 0.9782368823970508,
+   "Upper Teeth": 0.9850688362059395,
+   "Lower Teeth": 0.986173344188933,
+   "Mandibular Canal": 0.9179436560462143,
+   "Maxillary Sinus": 0.9513852587558809,
+   "Pharynx": 0.9838930482563888,
+   "Soft Palate": 0.9142776944725548
+  },
+  "tf3_ToothFairy3F_045": {
+   "Mandible": 0.9833040683088956,
+   "Upper Skull": 0.9433002127072911,
+   "Upper Teeth": 0.9589523292644412,
+   "Lower Teeth": 0.9683916055734478,
+   "Mandibular Canal": 0.9200307464556169,
+   "Maxillary Sinus": 0.9706496035609959,
+   "Pharynx": 0.9750977220939111,
+   "Soft Palate": 0.9570256344387742
+  },
+  "tf3_ToothFairy3F_055": {
+   "Mandible": 0.9896778883617006,
+   "Upper Skull": 0.9767512748524609,
+   "Upper Teeth": 0.9843523593314984,
+   "Lower Teeth": 0.965192647246504,
+   "Mandibular Canal": 0.9084543968415533,
+   "Maxillary Sinus": 0.978231884057971,
+   "Pharynx": 0.9867333957846052,
+   "Soft Palate": 0.9278077541815158
+  },
+  "tf3_ToothFairy3F_065": {
+   "Mandible": 0.9851366628279221,
+   "Upper Skull": 0.9572985709684528,
+   "Upper Teeth": 0.9726015185941613,
+   "Lower Teeth": 0.9611128127954827,
+   "Mandibular Canal": 0.8933482827265863,
+   "Maxillary Sinus": 0.9907666004478272,
+   "Nasal Cavity": 0.922081292934886,
+   "Pharynx": 0.9881534044485154,
+   "Soft Palate": 0.949421459374066
+  },
+  "tf3_ToothFairy3P_008": {
+   "Mandible": 0.9866071505050114,
+   "Upper Skull": 0.9509090216107025,
+   "Upper Teeth": 0.97944831232925,
+   "Lower Teeth": 0.9879822638082345,
+   "Mandibular Canal": 0.9086958224031949,
+   "Pharynx": 0.9179685668592384,
+   "Soft Palate": 0.9239874289346375
+  },
+  "tf3_ToothFairy3P_018": {
+   "Mandible": 0.9900364095556433,
+   "Upper Skull": 0.9381586027193529,
+   "Upper Teeth": 0.9760538139885204,
+   "Lower Teeth": 0.9891109771918315,
+   "Mandibular Canal": 0.9035658038202157,
+   "Maxillary Sinus": 0.0,
+   "Nasal Cavity": 0.32413793103448274,
+   "Pharynx": 0.9804532228717082,
+   "Soft Palate": 0.9320000985148881
+  },
+  "tf3_ToothFairy3P_028": {
+   "Mandible": 0.9873617889826979,
+   "Upper Skull": 0.8778857461162345,
+   "Upper Teeth": 0.9442930577218355,
+   "Lower Teeth": 0.9904900734838991,
+   "Mandibular Canal": 0.8394123748913622,
+   "Pharynx": 0.9846907342625216,
+   "Soft Palate": 0.9258950609092598
+  },
+  "tf3_ToothFairy3P_038": {
+   "Mandible": 0.9879551295294686,
+   "Lower Teeth": 0.9102293644061015,
+   "Mandibular Canal": 0.9175009948269002,
+   "Pharynx": 0.9887183900617061,
+   "Soft Palate": 0.8760774733903333
+  },
+  "tf3_ToothFairy3P_050": {
+   "Mandible": 0.9868972395167608,
+   "Upper Skull": 0.5740402193784278,
+   "Upper Teeth": 0.71799002359857,
+   "Lower Teeth": 0.9833853260026542,
+   "Mandibular Canal": 0.9018277485461091,
+   "Pharynx": 0.9791298011219146,
+   "Soft Palate": 0.8466362412581673
+  },
+  "tf3_ToothFairy3P_061": {
+   "Mandible": 0.9883713936091835,
+   "Upper Skull": 0.907108591365024,
+   "Upper Teeth": 0.7302934291872796,
+   "Lower Teeth": 0.8667220756120351,
+   "Mandibular Canal": 0.9055620818223606,
+   "Pharynx": 0.9802197879883637,
+   "Soft Palate": 0.9382985334706238
+  },
+  "tf3_ToothFairy3P_077": {
+   "Mandible": 0.9878204013884294,
+   "Upper Skull": 0.21686746987951808,
+   "Upper Teeth": NaN,
+   "Mandibular Canal": 0.8693210732272273,
+   "Pharynx": 0.9741565090199903,
+   "Soft Palate": 0.8950739489926633
+  },
+  "tf3_ToothFairy3P_088": {
+   "Mandible": 0.9891285121145102,
+   "Upper Skull": 0.8850987432675045,
+   "Upper Teeth": 0.7982108769374625,
+   "Lower Teeth": 0.974804138869382,
+   "Mandibular Canal": 0.9214705312762249,
+   "Pharynx": 0.9789422050197392,
+   "Soft Palate": 0.9093834613165254
+  },
+  "tf3_ToothFairy3P_098": {
+   "Mandible": 0.9848521134883692,
+   "Upper Skull": 0.9222520107238605,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.975092525685752,
+   "Mandibular Canal": 0.8656663093962129,
+   "Pharynx": 0.9838393178199003,
+   "Soft Palate": 0.9146348400896545
+  },
+  "tf3_ToothFairy3P_108": {
+   "Mandible": 0.9848171551169321,
+   "Upper Skull": 0.004704037632301058,
+   "Upper Teeth": 0.6398672990695384,
+   "Lower Teeth": 0.9553875512458798,
+   "Mandibular Canal": 0.8904419899204523,
+   "Pharynx": 0.9780785034006796,
+   "Soft Palate": 0.8287078869239706
+  },
+  "tf3_ToothFairy3P_118": {
+   "Mandible": 0.986281349740102,
+   "Upper Teeth": 0.47730571953934,
+   "Lower Teeth": 0.9578286885700039,
+   "Mandibular Canal": 0.8765044791430582,
+   "Pharynx": 0.9794560091335457,
+   "Soft Palate": 0.8552822597370277
+  },
+  "tf3_ToothFairy3P_128": {
+   "Mandible": 0.9882640393247408,
+   "Upper Skull": 0.9146415094339623,
+   "Upper Teeth": 0.9636122735865824,
+   "Lower Teeth": 0.9838841521548127,
+   "Mandibular Canal": 0.8598355323514203,
+   "Pharynx": 0.9703644292271296,
+   "Soft Palate": 0.9252662138652045
+  },
+  "tf3_ToothFairy3P_138": {
+   "Mandible": 0.9872887013247587,
+   "Upper Skull": 0.03187250996015936,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9867318786489065,
+   "Mandibular Canal": 0.9013918134661805,
+   "Pharynx": 0.9726902681058112,
+   "Soft Palate": 0.9343969381713609
+  },
+  "tf3_ToothFairy3P_148": {
+   "Mandible": 0.9880642114602952,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9771807970818448,
+   "Mandibular Canal": 0.9196134724459072,
+   "Pharynx": 0.981607317071364,
+   "Soft Palate": 0.9265971632925203
+  },
+  "tf3_ToothFairy3P_197": {
+   "Mandible": 0.9896899608342126,
+   "Upper Skull": 0.9498408411305103,
+   "Upper Teeth": 0.9855323220037963,
+   "Lower Teeth": 0.9854787533412362,
+   "Mandibular Canal": 0.8974684645498042,
+   "Pharynx": 0.9861794262437782,
+   "Soft Palate": 0.9158536466029298
+  },
+  "tf3_ToothFairy3P_207": {
+   "Mandible": 0.9874675220286286,
+   "Upper Skull": 0.4182692307692308,
+   "Upper Teeth": 0.9552763039498589,
+   "Lower Teeth": 0.9808551920375502,
+   "Mandibular Canal": 0.9224157294957995,
+   "Pharynx": 0.9772900451594404,
+   "Soft Palate": 0.8693818249988283
+  },
+  "tf3_ToothFairy3P_217": {
+   "Mandible": 0.9889510440195218,
+   "Upper Skull": 0.9164834235453315,
+   "Upper Teeth": 0.9865654251489167,
+   "Lower Teeth": 0.9872869535917187,
+   "Mandibular Canal": 0.9082436273824502,
+   "Pharynx": 0.9878977969327045,
+   "Soft Palate": 0.9136808083446238
+  },
+  "tf3_ToothFairy3P_237": {
+   "Mandible": 0.9889867219075041,
+   "Upper Teeth": 0.978102585510515,
+   "Lower Teeth": 0.9846475597262135,
+   "Mandibular Canal": 0.8495272580969624,
+   "Pharynx": 0.9809603191194428,
+   "Soft Palate": 0.9016232797920839
+  },
+  "tf3_ToothFairy3P_247": {
+   "Mandible": 0.9911544061266306,
+   "Upper Teeth": 0.9263266842303349,
+   "Lower Teeth": 0.9835439894388749,
+   "Mandibular Canal": 0.8632493374939237,
+   "Pharynx": 0.980014695297056,
+   "Soft Palate": 0.830194496544282
+  },
+  "tf3_ToothFairy3P_257": {
+   "Mandible": 0.9812907459960545,
+   "Upper Skull": 0.7731322823851954,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.918721102274829,
+   "Mandibular Canal": 0.9308313277176093,
+   "Pharynx": 0.9712161048719625,
+   "Soft Palate": 0.8252314407406104
+  },
+  "tf3_ToothFairy3P_323": {
+   "Mandible": 0.9898712267387664,
+   "Upper Teeth": 0.8629159231657395,
+   "Lower Teeth": 0.9837985899180461,
+   "Mandibular Canal": 0.9147591243390344,
+   "Pharynx": 0.9803562452590501,
+   "Soft Palate": 0.9005391763221292
+  },
+  "tf3_ToothFairy3P_333": {
+   "Mandible": 0.9902293005900447,
+   "Upper Skull": 0.9700826191820188,
+   "Upper Teeth": 0.9888785365043532,
+   "Lower Teeth": 0.989780724874918,
+   "Mandibular Canal": 0.893390959841527,
+   "Pharynx": 0.977659525078804,
+   "Soft Palate": 0.9103914464136917
+  },
+  "tf3_ToothFairy3P_343": {
+   "Mandible": 0.9907209536700554,
+   "Upper Skull": 0.9716522472803724,
+   "Upper Teeth": 0.9869647244647245,
+   "Lower Teeth": 0.988616235297793,
+   "Mandibular Canal": 0.8862084182654927,
+   "Nasal Cavity": 0.47212047212047215,
+   "Pharynx": 0.9817783367825711,
+   "Soft Palate": 0.9564841781471907
+  },
+  "tf3_ToothFairy3P_353": {
+   "Mandible": 0.9864482940615802,
+   "Upper Teeth": 0.9642057569296375,
+   "Lower Teeth": 0.9775197242560166,
+   "Mandibular Canal": 0.9129401740213349,
+   "Pharynx": 0.9707636830592118,
+   "Soft Palate": 0.9130846568556025
+  },
+  "tf3_ToothFairy3P_363": {
+   "Mandible": 0.9874257710924955,
+   "Upper Skull": 0.730410447761194,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9865388854726241,
+   "Mandibular Canal": 0.9269160049301893,
+   "Pharynx": 0.9671216399875615,
+   "Soft Palate": 0.8564867967853043
+  },
+  "tf3_ToothFairy3P_373": {
+   "Mandible": 0.9895569877121111,
+   "Upper Skull": 0.8513806172171088,
+   "Upper Teeth": 0.9732342309410665,
+   "Lower Teeth": 0.9843022470058744,
+   "Mandibular Canal": 0.9031554092730395,
+   "Pharynx": 0.984650222401941,
+   "Soft Palate": 0.9485916085092071
+  },
+  "tf3_ToothFairy3P_385": {
+   "Mandible": 0.9863532407911602,
+   "Upper Skull": 0.4280282455187398,
+   "Upper Teeth": 0.003946861763573354,
+   "Mandibular Canal": 0.9109539121114684,
+   "Pharynx": 0.9732452040184861,
+   "Soft Palate": 0.9452881214894945
+  },
+  "tf3_ToothFairy3P_395": {
+   "Mandible": 0.9897475363515401,
+   "Upper Skull": 0.8178623467900917,
+   "Upper Teeth": 0.9795767035514916,
+   "Lower Teeth": 0.9908708513473978,
+   "Mandibular Canal": 0.9219251336898395,
+   "Pharynx": 0.974483717433375,
+   "Soft Palate": 0.9571677633428941
+  },
+  "tf3_ToothFairy3P_405": {
+   "Mandible": 0.9904297216333059,
+   "Upper Skull": NaN,
+   "Upper Teeth": 0.969940621045459,
+   "Lower Teeth": 0.9819462178654585,
+   "Mandibular Canal": 0.9189117199391172,
+   "Pharynx": 0.9464576908270651,
+   "Soft Palate": 0.9220423612788918
+  },
+  "tf3_ToothFairy3P_415": {
+   "Mandible": 0.9904721737097308,
+   "Upper Skull": 0.6060606060606061,
+   "Upper Teeth": 0.9703060560017365,
+   "Lower Teeth": 0.9835165312595039,
+   "Mandibular Canal": 0.9215650502912881,
+   "Pharynx": 0.9901273339942448,
+   "Soft Palate": 0.21721409733876768
+  },
+  "tf3_ToothFairy3P_426": {
+   "Mandible": 0.986912453071228,
+   "Upper Skull": 0.2184228890439637,
+   "Upper Teeth": 0.856150558062218,
+   "Lower Teeth": 0.9824010161616499,
+   "Mandibular Canal": 0.9141714938402545,
+   "Pharynx": 0.9783244519518819,
+   "Soft Palate": 0.9098290373947889
+  },
+  "tf3_ToothFairy3P_436": {
+   "Mandible": 0.987394283880727,
+   "Upper Skull": 0.7201834862385321,
+   "Lower Teeth": NaN,
+   "Mandibular Canal": 0.9059890757717943,
+   "Pharynx": 0.9829185301345851,
+   "Soft Palate": 0.9156350548072204
+  },
+  "tf3_ToothFairy3P_447": {
+   "Mandible": 0.9916491775590609,
+   "Upper Skull": 0.9052562045862036,
+   "Upper Teeth": 0.9844106463878327,
+   "Lower Teeth": 0.987901671186391,
+   "Mandibular Canal": 0.9043680992389918,
+   "Pharynx": 0.9785825589463029,
+   "Soft Palate": 0.8964594468025006
+  },
+  "tf3_ToothFairy3P_458": {
+   "Mandible": 0.9899188489344735,
+   "Upper Skull": 0.9011720445666329,
+   "Upper Teeth": 0.9729796843232505,
+   "Lower Teeth": 0.9893689265249995,
+   "Mandibular Canal": 0.9161717316223754,
+   "Pharynx": 0.9812579298012585,
+   "Soft Palate": 0.8392661951983986
+  },
+  "tf3_ToothFairy3P_468": {
+   "Mandible": 0.9870964485191405,
+   "Upper Skull": 0.0,
+   "Lower Teeth": 0.9862010686429914,
+   "Mandibular Canal": 0.8974692470422314,
+   "Pharynx": 0.9866015004408847,
+   "Soft Palate": 0.8632841224051134
+  },
+  "tf3_ToothFairy3P_480": {
+   "Mandible": 0.9867694417597948,
+   "Upper Skull": 0.853988603988604,
+   "Upper Teeth": 0.9512356090049131,
+   "Lower Teeth": 0.9864012815707457,
+   "Mandibular Canal": 0.9007796384994581,
+   "Pharynx": 0.9724403378089861,
+   "Soft Palate": 0.9421733633420909
+  },
+  "tf3_ToothFairy3P_493": {
+   "Mandible": 0.9885193954160858,
+   "Upper Skull": 0.963972367155391,
+   "Upper Teeth": 0.9846190476190476,
+   "Lower Teeth": 0.9896259011577747,
+   "Mandibular Canal": 0.9260548853941484,
+   "Pharynx": 0.9813945435921112,
+   "Soft Palate": 0.9516928569786774
+  },
+  "tf3_ToothFairy3P_504": {
+   "Mandible": 0.9880274590754164,
+   "Upper Skull": 0.8069761960876738,
+   "Upper Teeth": 0.9709243510644211,
+   "Lower Teeth": 0.9849439863783521,
+   "Mandibular Canal": 0.9321601632236675,
+   "Pharynx": 0.9771627412950787,
+   "Soft Palate": 0.6526138895992402
+  },
+  "tf3_ToothFairy3P_514": {
+   "Mandible": 0.9863520113109895,
+   "Upper Skull": 0.5471698113207547,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.916398516234274,
+   "Mandibular Canal": 0.9264341213423707,
+   "Pharynx": 0.9761729399231881,
+   "Soft Palate": 0.838790486802167
+  },
+  "tf3_ToothFairy3P_526": {
+   "Mandible": 0.9871951986200814,
+   "Upper Skull": 0.0985352862849534,
+   "Lower Teeth": 0.9859739444005137,
+   "Mandibular Canal": 0.9356120047077285,
+   "Pharynx": 0.9757744553916842,
+   "Soft Palate": 0.9196614303134639
+  },
+  "tf3_ToothFairy3P_538": {
+   "Mandible": 0.9887530535894524,
+   "Upper Skull": 0.9118058177143382,
+   "Upper Teeth": 0.9883024476214275,
+   "Lower Teeth": 0.9813586200785871,
+   "Mandibular Canal": 0.9215378497729223,
+   "Pharynx": 0.9882469642588378,
+   "Soft Palate": 0.9193462897526502
+  },
+  "tf3_ToothFairy3S_0000": {
+   "Mandible": 0.9817799339045252,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.8662935066398693,
+   "Mandibular Canal": 0.9082683966543629,
+   "Pharynx": 0.9146811405877456,
+   "Soft Palate": 0.8968976915759289
+  },
+  "tf3_ToothFairy3S_0010": {
+   "Mandible": 0.9882648314235791,
+   "Upper Skull": 0.9795624735668024,
+   "Upper Teeth": 0.9822430980263281,
+   "Lower Teeth": 0.9825287344607145,
+   "Mandibular Canal": 0.9501314957222278,
+   "Pharynx": 0.9793051225031478,
+   "Soft Palate": 0.9096592329900657
+  }
+ },
+ "C_fine_forced": {
+  "dv_img0001": {
+   "Mandible": 0.9892844989688483,
+   "Upper Skull": 0.9816283809448221,
+   "Upper Teeth": 0.979059346802714,
+   "Lower Teeth": 0.9777775237158839,
+   "Mandibular Canal": 0.9231623709103532,
+   "Maxillary Sinus": 0.9880725310626228,
+   "Nasal Cavity": 0.9595517473540855,
+   "Pharynx": 0.9811199554675504,
+   "Soft Palate": 0.9298554263009239
+  },
+  "dv_img0006": {
+   "Mandible": 0.987814707920984,
+   "Upper Skull": 0.9771555538578095,
+   "Upper Teeth": 0.9785864038364219,
+   "Lower Teeth": 0.9794869705030268,
+   "Mandibular Canal": 0.9123546398189339,
+   "Maxillary Sinus": 0.9864125331825097,
+   "Nasal Cavity": 0.9650717924381712,
+   "Pharynx": 0.9794234881396562,
+   "Soft Palate": 0.9575702785883792
+  },
+  "dv_img0011": {
+   "Mandible": 0.9889880054934925,
+   "Upper Skull": 0.9762101610349735,
+   "Upper Teeth": 0.9793701119405276,
+   "Lower Teeth": 0.9758770210296862,
+   "Mandibular Canal": 0.9069740500463392,
+   "Maxillary Sinus": 0.972357583721837,
+   "Nasal Cavity": 0.9643838712143116,
+   "Pharynx": 0.9779726519888531,
+   "Soft Palate": 0.9521939769771873
+  },
+  "dv_img0016": {
+   "Mandible": 0.9910167548464273,
+   "Upper Skull": 0.9781801084988133,
+   "Upper Teeth": 0.9829691741199604,
+   "Lower Teeth": 0.9814750530714695,
+   "Mandibular Canal": 0.9499351692373192,
+   "Maxillary Sinus": 0.9898746086589777,
+   "Nasal Cavity": 0.9439544726573094,
+   "Pharynx": 0.9786397552500796,
+   "Soft Palate": 0.9454107701041716
+  },
+  "dv_img0021": {
+   "Mandible": 0.9862399167670687,
+   "Upper Skull": 0.975038684868821,
+   "Upper Teeth": 0.9759949163127198,
+   "Lower Teeth": 0.9787591744131942,
+   "Mandibular Canal": 0.9020663284065005,
+   "Maxillary Sinus": 0.9760228426516925,
+   "Nasal Cavity": 0.9653447438228029,
+   "Pharynx": 0.9563303943826109,
+   "Soft Palate": 0.9454945199186191
+  },
+  "dv_img0026": {
+   "Mandible": 0.9857167272640492,
+   "Upper Skull": 0.9732376106119192,
+   "Upper Teeth": 0.9843329694494211,
+   "Lower Teeth": 0.9850114049987867,
+   "Mandibular Canal": 0.9481257494395495,
+   "Maxillary Sinus": 0.9913820645840477,
+   "Nasal Cavity": 0.9670736376673195,
+   "Pharynx": 0.9847913459039012,
+   "Soft Palate": 0.953410917790105
+  },
+  "dv_img0032": {
+   "Mandible": 0.9901770227636181,
+   "Upper Skull": 0.9786005946455673,
+   "Upper Teeth": 0.9752259528065528,
+   "Lower Teeth": 0.970706471863757,
+   "Mandibular Canal": 0.9446924032577186,
+   "Maxillary Sinus": 0.9848118347621857,
+   "Nasal Cavity": 0.9638561481934104,
+   "Pharynx": 0.9789823477266685,
+   "Soft Palate": 0.9612991545389917
+  },
+  "dv_img0037": {
+   "Mandible": 0.9877168169775298,
+   "Upper Skull": 0.9749520998960767,
+   "Upper Teeth": 0.9639685586496168,
+   "Lower Teeth": 0.9648953233601358,
+   "Mandibular Canal": 0.9578167766865239,
+   "Maxillary Sinus": 0.9795111795788123,
+   "Nasal Cavity": 0.9645968724573355,
+   "Pharynx": 0.9819140558719496,
+   "Soft Palate": 0.9521651438569206
+  },
+  "dv_img0042": {
+   "Mandible": 0.990260086163943,
+   "Upper Skull": 0.9744153622813447,
+   "Upper Teeth": 0.973476125738701,
+   "Lower Teeth": 0.9648059613154155,
+   "Mandibular Canal": 0.946900167022209,
+   "Maxillary Sinus": 0.98288481048457,
+   "Nasal Cavity": 0.9635615777768612,
+   "Pharynx": 0.9809029105578446,
+   "Soft Palate": 0.9481081258891931
+  },
+  "dv_img0047": {
+   "Mandible": 0.9885501458286464,
+   "Upper Skull": 0.9786974900649335,
+   "Upper Teeth": 0.9784231285604538,
+   "Lower Teeth": 0.9765263999299214,
+   "Mandibular Canal": 0.9556669538654343,
+   "Maxillary Sinus": 0.986907243501761,
+   "Nasal Cavity": 0.947355082973299,
+   "Pharynx": 0.9757656882775236,
+   "Soft Palate": 0.9563524123215876
+  },
+  "dv_img0053": {
+   "Mandible": 0.9895638424180593,
+   "Upper Skull": 0.9755788900214063,
+   "Upper Teeth": 0.9817518125502086,
+   "Lower Teeth": 0.9795914808122946,
+   "Mandibular Canal": 0.9531772575250836,
+   "Maxillary Sinus": 0.9880916233434823,
+   "Nasal Cavity": 0.9585346355705398,
+   "Pharynx": 0.9782944358571634,
+   "Soft Palate": 0.9416369743177145
+  },
+  "dv_img0059": {
+   "Mandible": 0.9896994286622022,
+   "Upper Skull": 0.9675609719497695,
+   "Upper Teeth": 0.983585478903763,
+   "Lower Teeth": 0.9812846592980795,
+   "Mandibular Canal": 0.9499220018464869,
+   "Maxillary Sinus": 0.9608664636420586,
+   "Nasal Cavity": 0.9310192347086539,
+   "Pharynx": 0.9823552397286718,
+   "Soft Palate": 0.9504068079234108
+  },
+  "dv_img0064": {
+   "Mandible": 0.9823417585373182,
+   "Upper Skull": 0.97481012671141,
+   "Upper Teeth": 0.9826249182287334,
+   "Lower Teeth": 0.9783463285849218,
+   "Mandibular Canal": 0.9504674756315894,
+   "Maxillary Sinus": 0.9822546015915288,
+   "Nasal Cavity": 0.9618083446216245,
+   "Pharynx": 0.9774353595090397,
+   "Soft Palate": 0.942806376863808
+  },
+  "dv_img0069": {
+   "Mandible": 0.9853585180473768,
+   "Upper Skull": 0.9714491205845893,
+   "Upper Teeth": 0.9831109218247208,
+   "Lower Teeth": 0.9831544900736955,
+   "Mandibular Canal": 0.9477289986912052,
+   "Maxillary Sinus": 0.9872890512714845,
+   "Nasal Cavity": 0.9669621623544654,
+   "Pharynx": 0.9779634416227145,
+   "Soft Palate": 0.9401871766801898
+  },
+  "dv_img0074": {
+   "Mandible": 0.9893150605864692,
+   "Upper Skull": 0.978064992066512,
+   "Upper Teeth": 0.9822495913478837,
+   "Lower Teeth": 0.9816812934082405,
+   "Mandibular Canal": 0.955106797857319,
+   "Maxillary Sinus": 0.986980329756969,
+   "Nasal Cavity": 0.9657575474293109,
+   "Pharynx": 0.9791554749753782,
+   "Soft Palate": 0.9649661298329713
+  },
+  "dv_img0079": {
+   "Mandible": 0.9863202227227923,
+   "Upper Skull": 0.9735962882263246,
+   "Upper Teeth": 0.9811918807831587,
+   "Lower Teeth": 0.9789503525993125,
+   "Mandibular Canal": 0.8933436703953926,
+   "Maxillary Sinus": 0.9880372815587186,
+   "Nasal Cavity": 0.9699183121375997,
+   "Pharynx": 0.9841285407298858,
+   "Soft Palate": 0.9438461328306423
+  },
+  "dv_img0085": {
+   "Mandible": 0.9845315489472272,
+   "Upper Skull": 0.9737955861835373,
+   "Upper Teeth": 0.9782954781074613,
+   "Lower Teeth": 0.9693495951987006,
+   "Mandibular Canal": 0.9085515181682429,
+   "Maxillary Sinus": 0.9686708403786359,
+   "Nasal Cavity": 0.9561472477647137,
+   "Pharynx": 0.981243598479763,
+   "Soft Palate": 0.9432602271163562
+  },
+  "dv_img0090": {
+   "Mandible": 0.9874698926162814,
+   "Upper Skull": 0.9747902423083046,
+   "Upper Teeth": 0.9773327570474956,
+   "Lower Teeth": 0.9712435443625602,
+   "Mandibular Canal": 0.9432889628397116,
+   "Maxillary Sinus": 0.9870743889059812,
+   "Nasal Cavity": 0.9679255245525988,
+   "Pharynx": 0.9824538040596694,
+   "Soft Palate": 0.9586094418078432
+  },
+  "dv_img0095": {
+   "Mandible": 0.9862925579474631,
+   "Upper Skull": 0.9699180717369399,
+   "Upper Teeth": 0.9787843016181464,
+   "Lower Teeth": 0.9753377898672785,
+   "Mandibular Canal": 0.9337169783782657,
+   "Maxillary Sinus": 0.9875711027750875,
+   "Nasal Cavity": 0.9638458908927311,
+   "Pharynx": 0.978430647487335,
+   "Soft Palate": 0.9427604261562509
+  },
+  "dv_img0101": {
+   "Mandible": 0.9873257631191451,
+   "Upper Skull": 0.9783875812194482,
+   "Upper Teeth": 0.9827989883779807,
+   "Lower Teeth": 0.9804295495959262,
+   "Mandibular Canal": 0.9476366625565146,
+   "Maxillary Sinus": 0.9831429224805762,
+   "Nasal Cavity": 0.9598257511700633,
+   "Pharynx": 0.977230259433823,
+   "Soft Palate": 0.942326936333919
+  },
+  "tf3_ToothFairy3F_001": {
+   "Mandible": 0.9872720233238824,
+   "Upper Skull": 0.9642841658935029,
+   "Upper Teeth": 0.9715361635881685,
+   "Lower Teeth": 0.9727144528445447,
+   "Mandibular Canal": 0.8589139822156688,
+   "Maxillary Sinus": 0.9837536802525628,
+   "Pharynx": 0.9694156791997478,
+   "Soft Palate": 0.9353950652224252
+  },
+  "tf3_ToothFairy3F_011": {
+   "Mandible": 0.9793816011398966,
+   "Upper Skull": 0.9485772166326184,
+   "Upper Teeth": 0.8999668086518781,
+   "Lower Teeth": 0.9282235414272948,
+   "Mandibular Canal": 0.9022802052414809,
+   "Maxillary Sinus": 0.9878763134710016,
+   "Nasal Cavity": 0.9037442593155866,
+   "Pharynx": 0.9731243044662695,
+   "Soft Palate": 0.9060054208801854
+  },
+  "tf3_ToothFairy3F_023": {
+   "Mandible": 0.9882501325999904,
+   "Upper Skull": 0.9764011554781551,
+   "Upper Teeth": 0.9875041067387019,
+   "Lower Teeth": 0.9883271759908097,
+   "Mandibular Canal": 0.9346228801762434,
+   "Maxillary Sinus": 0.7319619281547436,
+   "Pharynx": 0.9896489455852248,
+   "Soft Palate": 0.965649482276886
+  },
+  "tf3_ToothFairy3F_033": {
+   "Mandible": 0.9873994454225385,
+   "Upper Skull": 0.9782368823970508,
+   "Upper Teeth": 0.9850688362059395,
+   "Lower Teeth": 0.986173344188933,
+   "Mandibular Canal": 0.8917209720394209,
+   "Maxillary Sinus": 0.9513852587558809,
+   "Pharynx": 0.9838930482563888,
+   "Soft Palate": 0.9142776944725548
+  },
+  "tf3_ToothFairy3F_045": {
+   "Mandible": 0.9833040683088956,
+   "Upper Skull": 0.9433002127072911,
+   "Upper Teeth": 0.9589523292644412,
+   "Lower Teeth": 0.9683916055734478,
+   "Mandibular Canal": 0.9200307464556169,
+   "Maxillary Sinus": 0.9706496035609959,
+   "Pharynx": 0.9750977220939111,
+   "Soft Palate": 0.9570256344387742
+  },
+  "tf3_ToothFairy3F_055": {
+   "Mandible": 0.9896778883617006,
+   "Upper Skull": 0.9767512748524609,
+   "Upper Teeth": 0.9843523593314984,
+   "Lower Teeth": 0.965192647246504,
+   "Mandibular Canal": 0.9084543968415533,
+   "Maxillary Sinus": 0.978231884057971,
+   "Pharynx": 0.9867333957846052,
+   "Soft Palate": 0.9278077541815158
+  },
+  "tf3_ToothFairy3F_065": {
+   "Mandible": 0.9851366628279221,
+   "Upper Skull": 0.9572985709684528,
+   "Upper Teeth": 0.9726015185941613,
+   "Lower Teeth": 0.9611128127954827,
+   "Mandibular Canal": 0.8933482827265863,
+   "Maxillary Sinus": 0.9907666004478272,
+   "Nasal Cavity": 0.922081292934886,
+   "Pharynx": 0.9881534044485154,
+   "Soft Palate": 0.949421459374066
+  },
+  "tf3_ToothFairy3P_008": {
+   "Mandible": 0.9865251411199802,
+   "Upper Skull": 0.9509090216107025,
+   "Upper Teeth": 0.97944831232925,
+   "Lower Teeth": 0.9879822638082345,
+   "Mandibular Canal": 0.8929546378579312,
+   "Pharynx": 0.9179685668592384,
+   "Soft Palate": 0.9239874289346375
+  },
+  "tf3_ToothFairy3P_018": {
+   "Mandible": 0.9900364095556433,
+   "Upper Skull": 0.9381586027193529,
+   "Upper Teeth": 0.9760538139885204,
+   "Lower Teeth": 0.9891109771918315,
+   "Mandibular Canal": 0.9035658038202157,
+   "Maxillary Sinus": 0.0,
+   "Nasal Cavity": 0.32413793103448274,
+   "Pharynx": 0.9804532228717082,
+   "Soft Palate": 0.9320000985148881
+  },
+  "tf3_ToothFairy3P_028": {
+   "Mandible": 0.9875284213976583,
+   "Upper Skull": 0.8778857461162345,
+   "Upper Teeth": 0.9442930577218355,
+   "Lower Teeth": 0.9904900734838991,
+   "Mandibular Canal": 0.834461021222946,
+   "Pharynx": 0.9846907342625216,
+   "Soft Palate": 0.9258950609092598
+  },
+  "tf3_ToothFairy3P_038": {
+   "Mandible": 0.9878697885934254,
+   "Lower Teeth": 0.9102293644061015,
+   "Mandibular Canal": 0.9016045154743785,
+   "Pharynx": 0.9887183900617061,
+   "Soft Palate": 0.8760774733903333
+  },
+  "tf3_ToothFairy3P_050": {
+   "Mandible": 0.9868703783287147,
+   "Upper Skull": 0.5740402193784278,
+   "Upper Teeth": 0.71799002359857,
+   "Lower Teeth": 0.9833853260026542,
+   "Mandibular Canal": 0.8846237970253719,
+   "Pharynx": 0.9791298011219146,
+   "Soft Palate": 0.8466362412581673
+  },
+  "tf3_ToothFairy3P_061": {
+   "Mandible": 0.9884017099186102,
+   "Upper Skull": 0.907108591365024,
+   "Upper Teeth": 0.7302934291872796,
+   "Lower Teeth": 0.8667220756120351,
+   "Mandibular Canal": 0.8966050164682037,
+   "Pharynx": 0.9802197879883637,
+   "Soft Palate": 0.9382985334706238
+  },
+  "tf3_ToothFairy3P_077": {
+   "Mandible": 0.9878204013884294,
+   "Upper Skull": 0.21686746987951808,
+   "Upper Teeth": NaN,
+   "Mandibular Canal": 0.8693210732272273,
+   "Pharynx": 0.9741565090199903,
+   "Soft Palate": 0.8950739489926633
+  },
+  "tf3_ToothFairy3P_088": {
+   "Mandible": 0.9889437274666901,
+   "Upper Skull": 0.8850987432675045,
+   "Upper Teeth": 0.7982108769374625,
+   "Lower Teeth": 0.974804138869382,
+   "Mandibular Canal": 0.9050091337371406,
+   "Pharynx": 0.9789422050197392,
+   "Soft Palate": 0.9093834613165254
+  },
+  "tf3_ToothFairy3P_098": {
+   "Mandible": 0.9848521134883692,
+   "Upper Skull": 0.9222520107238605,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.975092525685752,
+   "Mandibular Canal": 0.8656663093962129,
+   "Pharynx": 0.9838393178199003,
+   "Soft Palate": 0.9146348400896545
+  },
+  "tf3_ToothFairy3P_108": {
+   "Mandible": 0.9848171551169321,
+   "Upper Skull": 0.004704037632301058,
+   "Upper Teeth": 0.6398672990695384,
+   "Lower Teeth": 0.9553875512458798,
+   "Mandibular Canal": 0.8904419899204523,
+   "Pharynx": 0.9780785034006796,
+   "Soft Palate": 0.8287078869239706
+  },
+  "tf3_ToothFairy3P_118": {
+   "Mandible": 0.9863288672480498,
+   "Upper Teeth": 0.47730571953934,
+   "Lower Teeth": 0.9578286885700039,
+   "Mandibular Canal": 0.880921805318826,
+   "Pharynx": 0.9794560091335457,
+   "Soft Palate": 0.8552822597370277
+  },
+  "tf3_ToothFairy3P_128": {
+   "Mandible": 0.9882716771568393,
+   "Upper Skull": 0.9146415094339623,
+   "Upper Teeth": 0.9636122735865824,
+   "Lower Teeth": 0.9838841521548127,
+   "Mandibular Canal": 0.8503718393653942,
+   "Pharynx": 0.9703644292271296,
+   "Soft Palate": 0.9252662138652045
+  },
+  "tf3_ToothFairy3P_138": {
+   "Mandible": 0.9872246942497697,
+   "Upper Skull": 0.03187250996015936,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9867318786489065,
+   "Mandibular Canal": 0.8886514810434075,
+   "Pharynx": 0.9726902681058112,
+   "Soft Palate": 0.9343969381713609
+  },
+  "tf3_ToothFairy3P_148": {
+   "Mandible": 0.9880125606532175,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9771807970818448,
+   "Mandibular Canal": 0.9038610237641116,
+   "Pharynx": 0.981607317071364,
+   "Soft Palate": 0.9265971632925203
+  },
+  "tf3_ToothFairy3P_197": {
+   "Mandible": 0.98955554954086,
+   "Upper Skull": 0.9498408411305103,
+   "Upper Teeth": 0.9855323220037963,
+   "Lower Teeth": 0.9854787533412362,
+   "Mandibular Canal": 0.8699312946248148,
+   "Pharynx": 0.9861794262437782,
+   "Soft Palate": 0.9158536466029298
+  },
+  "tf3_ToothFairy3P_207": {
+   "Mandible": 0.9873424434964337,
+   "Upper Skull": 0.4182692307692308,
+   "Upper Teeth": 0.9552763039498589,
+   "Lower Teeth": 0.9808551920375502,
+   "Mandibular Canal": 0.9098198184771755,
+   "Pharynx": 0.9772900451594404,
+   "Soft Palate": 0.8693818249988283
+  },
+  "tf3_ToothFairy3P_217": {
+   "Mandible": 0.9888826592824219,
+   "Upper Skull": 0.9164834235453315,
+   "Upper Teeth": 0.9865654251489167,
+   "Lower Teeth": 0.9872869535917187,
+   "Mandibular Canal": 0.8912486784917185,
+   "Pharynx": 0.9878977969327045,
+   "Soft Palate": 0.9136808083446238
+  },
+  "tf3_ToothFairy3P_237": {
+   "Mandible": 0.9890722684444611,
+   "Upper Teeth": 0.978102585510515,
+   "Lower Teeth": 0.9846475597262135,
+   "Mandibular Canal": 0.8607122878985642,
+   "Pharynx": 0.9809603191194428,
+   "Soft Palate": 0.9016232797920839
+  },
+  "tf3_ToothFairy3P_247": {
+   "Mandible": 0.9912589942730571,
+   "Upper Teeth": 0.9263266842303349,
+   "Lower Teeth": 0.9835439894388749,
+   "Mandibular Canal": 0.8698620700212789,
+   "Pharynx": 0.980014695297056,
+   "Soft Palate": 0.830194496544282
+  },
+  "tf3_ToothFairy3P_257": {
+   "Mandible": 0.9811788089595597,
+   "Upper Skull": 0.7731322823851954,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.918721102274829,
+   "Mandibular Canal": 0.9142857142857143,
+   "Pharynx": 0.9712161048719625,
+   "Soft Palate": 0.8252314407406104
+  },
+  "tf3_ToothFairy3P_323": {
+   "Mandible": 0.9897409829467804,
+   "Upper Teeth": 0.8629159231657395,
+   "Lower Teeth": 0.9837985899180461,
+   "Mandibular Canal": 0.8970003009731465,
+   "Pharynx": 0.9803562452590501,
+   "Soft Palate": 0.9005391763221292
+  },
+  "tf3_ToothFairy3P_333": {
+   "Mandible": 0.9902293005900447,
+   "Upper Skull": 0.9700826191820188,
+   "Upper Teeth": 0.9888785365043532,
+   "Lower Teeth": 0.989780724874918,
+   "Mandibular Canal": 0.893390959841527,
+   "Pharynx": 0.977659525078804,
+   "Soft Palate": 0.9103914464136917
+  },
+  "tf3_ToothFairy3P_343": {
+   "Mandible": 0.9907209536700554,
+   "Upper Skull": 0.9716522472803724,
+   "Upper Teeth": 0.9869647244647245,
+   "Lower Teeth": 0.988616235297793,
+   "Mandibular Canal": 0.8862084182654927,
+   "Nasal Cavity": 0.47212047212047215,
+   "Pharynx": 0.9817783367825711,
+   "Soft Palate": 0.9564841781471907
+  },
+  "tf3_ToothFairy3P_353": {
+   "Mandible": 0.9864368290568138,
+   "Upper Teeth": 0.9642057569296375,
+   "Lower Teeth": 0.9775197242560166,
+   "Mandibular Canal": 0.8994725805426701,
+   "Pharynx": 0.9707636830592118,
+   "Soft Palate": 0.9130846568556025
+  },
+  "tf3_ToothFairy3P_363": {
+   "Mandible": 0.9873693209139967,
+   "Upper Skull": 0.730410447761194,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9865388854726241,
+   "Mandibular Canal": 0.9132961927555762,
+   "Pharynx": 0.9671216399875615,
+   "Soft Palate": 0.8564867967853043
+  },
+  "tf3_ToothFairy3P_373": {
+   "Mandible": 0.9895569877121111,
+   "Upper Skull": 0.8513806172171088,
+   "Upper Teeth": 0.9732342309410665,
+   "Lower Teeth": 0.9843022470058744,
+   "Mandibular Canal": 0.9031554092730395,
+   "Pharynx": 0.984650222401941,
+   "Soft Palate": 0.9485916085092071
+  },
+  "tf3_ToothFairy3P_385": {
+   "Mandible": 0.9863333897124816,
+   "Upper Skull": 0.4280282455187398,
+   "Upper Teeth": 0.003946861763573354,
+   "Mandibular Canal": 0.8941034396601982,
+   "Pharynx": 0.9732452040184861,
+   "Soft Palate": 0.9452881214894945
+  },
+  "tf3_ToothFairy3P_395": {
+   "Mandible": 0.9896359858798793,
+   "Upper Skull": 0.8178623467900917,
+   "Upper Teeth": 0.9795767035514916,
+   "Lower Teeth": 0.9908708513473978,
+   "Mandibular Canal": 0.8985747927528144,
+   "Pharynx": 0.974483717433375,
+   "Soft Palate": 0.9571677633428941
+  },
+  "tf3_ToothFairy3P_405": {
+   "Mandible": 0.9903986172030926,
+   "Upper Skull": NaN,
+   "Upper Teeth": 0.969940621045459,
+   "Lower Teeth": 0.9819462178654585,
+   "Mandibular Canal": 0.8976263883213847,
+   "Pharynx": 0.9464576908270651,
+   "Soft Palate": 0.9220423612788918
+  },
+  "tf3_ToothFairy3P_415": {
+   "Mandible": 0.9904192007916477,
+   "Upper Skull": 0.6060606060606061,
+   "Upper Teeth": 0.9703060560017365,
+   "Lower Teeth": 0.9835165312595039,
+   "Mandibular Canal": 0.8930704898446834,
+   "Pharynx": 0.9901273339942448,
+   "Soft Palate": 0.21721409733876768
+  },
+  "tf3_ToothFairy3P_426": {
+   "Mandible": 0.986912453071228,
+   "Upper Skull": 0.2184228890439637,
+   "Upper Teeth": 0.856150558062218,
+   "Lower Teeth": 0.9824010161616499,
+   "Mandibular Canal": 0.9141714938402545,
+   "Pharynx": 0.9783244519518819,
+   "Soft Palate": 0.9098290373947889
+  },
+  "tf3_ToothFairy3P_436": {
+   "Mandible": 0.9875047378797869,
+   "Upper Skull": 0.7201834862385321,
+   "Lower Teeth": NaN,
+   "Mandibular Canal": 0.892275751427358,
+   "Pharynx": 0.9829185301345851,
+   "Soft Palate": 0.9156350548072204
+  },
+  "tf3_ToothFairy3P_447": {
+   "Mandible": 0.9915955106101892,
+   "Upper Skull": 0.9052562045862036,
+   "Upper Teeth": 0.9844106463878327,
+   "Lower Teeth": 0.987901671186391,
+   "Mandibular Canal": 0.8813036393264531,
+   "Pharynx": 0.9785825589463029,
+   "Soft Palate": 0.8964594468025006
+  },
+  "tf3_ToothFairy3P_458": {
+   "Mandible": 0.9898490013076765,
+   "Upper Skull": 0.9011720445666329,
+   "Upper Teeth": 0.9729796843232505,
+   "Lower Teeth": 0.9893689265249995,
+   "Mandibular Canal": 0.8914339504235959,
+   "Pharynx": 0.9812579298012585,
+   "Soft Palate": 0.8392661951983986
+  },
+  "tf3_ToothFairy3P_468": {
+   "Mandible": 0.9870169453197587,
+   "Upper Skull": 0.0,
+   "Lower Teeth": 0.9862010686429914,
+   "Mandibular Canal": 0.8874715544065513,
+   "Pharynx": 0.9866015004408847,
+   "Soft Palate": 0.8632841224051134
+  },
+  "tf3_ToothFairy3P_480": {
+   "Mandible": 0.9867694417597948,
+   "Upper Skull": 0.853988603988604,
+   "Upper Teeth": 0.9512356090049131,
+   "Lower Teeth": 0.9864012815707457,
+   "Mandibular Canal": 0.9007796384994581,
+   "Pharynx": 0.9724403378089861,
+   "Soft Palate": 0.9421733633420909
+  },
+  "tf3_ToothFairy3P_493": {
+   "Mandible": 0.9884199604352837,
+   "Upper Skull": 0.963972367155391,
+   "Upper Teeth": 0.9846190476190476,
+   "Lower Teeth": 0.9896259011577747,
+   "Mandibular Canal": 0.8974484949723233,
+   "Pharynx": 0.9813945435921112,
+   "Soft Palate": 0.9516928569786774
+  },
+  "tf3_ToothFairy3P_504": {
+   "Mandible": 0.9879497244553715,
+   "Upper Skull": 0.8069761960876738,
+   "Upper Teeth": 0.9709243510644211,
+   "Lower Teeth": 0.9849439863783521,
+   "Mandibular Canal": 0.9107068512987601,
+   "Pharynx": 0.9771627412950787,
+   "Soft Palate": 0.6526138895992402
+  },
+  "tf3_ToothFairy3P_514": {
+   "Mandible": 0.9863520113109895,
+   "Upper Skull": 0.5471698113207547,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.916398516234274,
+   "Mandibular Canal": 0.9264341213423707,
+   "Pharynx": 0.9761729399231881,
+   "Soft Palate": 0.838790486802167
+  },
+  "tf3_ToothFairy3P_526": {
+   "Mandible": 0.9870846444966572,
+   "Upper Skull": 0.0985352862849534,
+   "Lower Teeth": 0.9859739444005137,
+   "Mandibular Canal": 0.9244860225060306,
+   "Pharynx": 0.9757744553916842,
+   "Soft Palate": 0.9196614303134639
+  },
+  "tf3_ToothFairy3P_538": {
+   "Mandible": 0.988697676138326,
+   "Upper Skull": 0.9118058177143382,
+   "Upper Teeth": 0.9883024476214275,
+   "Lower Teeth": 0.9813586200785871,
+   "Mandibular Canal": 0.9002740528440828,
+   "Pharynx": 0.9882469642588378,
+   "Soft Palate": 0.9193462897526502
+  },
+  "tf3_ToothFairy3S_0000": {
+   "Mandible": 0.9817799339045252,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.8662935066398693,
+   "Mandibular Canal": 0.9082683966543629,
+   "Pharynx": 0.9146811405877456,
+   "Soft Palate": 0.8968976915759289
+  },
+  "tf3_ToothFairy3S_0010": {
+   "Mandible": 0.9880964244017425,
+   "Upper Skull": 0.9795624735668024,
+   "Upper Teeth": 0.9822430980263281,
+   "Lower Teeth": 0.9825287344607145,
+   "Mandibular Canal": 0.9293085825447591,
+   "Pharynx": 0.9793051225031478,
+   "Soft Palate": 0.9096592329900657
+  }
+ },
+ "D_match_forced": {
+  "dv_img0001": {
+   "Mandible": 0.9892844989688483,
+   "Upper Skull": 0.9816283809448221,
+   "Upper Teeth": 0.979059346802714,
+   "Lower Teeth": 0.9777775237158839,
+   "Mandibular Canal": 0.9231623709103532,
+   "Maxillary Sinus": 0.9880725310626228,
+   "Nasal Cavity": 0.9595517473540855,
+   "Pharynx": 0.9811199554675504,
+   "Soft Palate": 0.9298554263009239
+  },
+  "dv_img0006": {
+   "Mandible": 0.9878317429037773,
+   "Upper Skull": 0.9771555538578095,
+   "Upper Teeth": 0.9785864038364219,
+   "Lower Teeth": 0.9794869705030268,
+   "Mandibular Canal": 0.9076125977528962,
+   "Maxillary Sinus": 0.9864125331825097,
+   "Nasal Cavity": 0.9650717924381712,
+   "Pharynx": 0.9794234881396562,
+   "Soft Palate": 0.9575702785883792
+  },
+  "dv_img0011": {
+   "Mandible": 0.9890077379950671,
+   "Upper Skull": 0.9762101610349735,
+   "Upper Teeth": 0.9793701119405276,
+   "Lower Teeth": 0.9758770210296862,
+   "Mandibular Canal": 0.9017343229324447,
+   "Maxillary Sinus": 0.972357583721837,
+   "Nasal Cavity": 0.9643838712143116,
+   "Pharynx": 0.9779726519888531,
+   "Soft Palate": 0.9521939769771873
+  },
+  "dv_img0016": {
+   "Mandible": 0.991012251545455,
+   "Upper Skull": 0.9781801084988133,
+   "Upper Teeth": 0.9829691741199604,
+   "Lower Teeth": 0.9814750530714695,
+   "Mandibular Canal": 0.9507797082382077,
+   "Maxillary Sinus": 0.9898746086589777,
+   "Nasal Cavity": 0.9439544726573094,
+   "Pharynx": 0.9786397552500796,
+   "Soft Palate": 0.9454107701041716
+  },
+  "dv_img0021": {
+   "Mandible": 0.9863466265051818,
+   "Upper Skull": 0.975038684868821,
+   "Upper Teeth": 0.9759949163127198,
+   "Lower Teeth": 0.9787591744131942,
+   "Mandibular Canal": 0.923097400100565,
+   "Maxillary Sinus": 0.9760228426516925,
+   "Nasal Cavity": 0.9653447438228029,
+   "Pharynx": 0.9563303943826109,
+   "Soft Palate": 0.9454945199186191
+  },
+  "dv_img0026": {
+   "Mandible": 0.985703303593447,
+   "Upper Skull": 0.9732376106119192,
+   "Upper Teeth": 0.9843329694494211,
+   "Lower Teeth": 0.9850114049987867,
+   "Mandibular Canal": 0.9423510577866524,
+   "Maxillary Sinus": 0.9913820645840477,
+   "Nasal Cavity": 0.9670736376673195,
+   "Pharynx": 0.9847913459039012,
+   "Soft Palate": 0.953410917790105
+  },
+  "dv_img0032": {
+   "Mandible": 0.9901770227636181,
+   "Upper Skull": 0.9786005946455673,
+   "Upper Teeth": 0.9752259528065528,
+   "Lower Teeth": 0.970706471863757,
+   "Mandibular Canal": 0.9446924032577186,
+   "Maxillary Sinus": 0.9848118347621857,
+   "Nasal Cavity": 0.9638561481934104,
+   "Pharynx": 0.9789823477266685,
+   "Soft Palate": 0.9612991545389917
+  },
+  "dv_img0037": {
+   "Mandible": 0.9877168169775298,
+   "Upper Skull": 0.9749520998960767,
+   "Upper Teeth": 0.9639685586496168,
+   "Lower Teeth": 0.9648953233601358,
+   "Mandibular Canal": 0.9578167766865239,
+   "Maxillary Sinus": 0.9795111795788123,
+   "Nasal Cavity": 0.9645968724573355,
+   "Pharynx": 0.9819140558719496,
+   "Soft Palate": 0.9521651438569206
+  },
+  "dv_img0042": {
+   "Mandible": 0.9902708895924492,
+   "Upper Skull": 0.9744153622813447,
+   "Upper Teeth": 0.973476125738701,
+   "Lower Teeth": 0.9648059613154155,
+   "Mandibular Canal": 0.9457935320520198,
+   "Maxillary Sinus": 0.98288481048457,
+   "Nasal Cavity": 0.9635615777768612,
+   "Pharynx": 0.9809029105578446,
+   "Soft Palate": 0.9481081258891931
+  },
+  "dv_img0047": {
+   "Mandible": 0.9885321470669399,
+   "Upper Skull": 0.9786974900649335,
+   "Upper Teeth": 0.9784231285604538,
+   "Lower Teeth": 0.9765263999299214,
+   "Mandibular Canal": 0.9540113214913137,
+   "Maxillary Sinus": 0.986907243501761,
+   "Nasal Cavity": 0.947355082973299,
+   "Pharynx": 0.9757656882775236,
+   "Soft Palate": 0.9563524123215876
+  },
+  "dv_img0053": {
+   "Mandible": 0.9895638424180593,
+   "Upper Skull": 0.9755788900214063,
+   "Upper Teeth": 0.9817518125502086,
+   "Lower Teeth": 0.9795914808122946,
+   "Mandibular Canal": 0.9531772575250836,
+   "Maxillary Sinus": 0.9880916233434823,
+   "Nasal Cavity": 0.9585346355705398,
+   "Pharynx": 0.9782944358571634,
+   "Soft Palate": 0.9416369743177145
+  },
+  "dv_img0059": {
+   "Mandible": 0.9896820813893819,
+   "Upper Skull": 0.9675609719497695,
+   "Upper Teeth": 0.983585478903763,
+   "Lower Teeth": 0.9812846592980795,
+   "Mandibular Canal": 0.9493920055878338,
+   "Maxillary Sinus": 0.9608664636420586,
+   "Nasal Cavity": 0.9310192347086539,
+   "Pharynx": 0.9823552397286718,
+   "Soft Palate": 0.9504068079234108
+  },
+  "dv_img0064": {
+   "Mandible": 0.982341867944395,
+   "Upper Skull": 0.97481012671141,
+   "Upper Teeth": 0.9826249182287334,
+   "Lower Teeth": 0.9783463285849218,
+   "Mandibular Canal": 0.9500890560063329,
+   "Maxillary Sinus": 0.9822546015915288,
+   "Nasal Cavity": 0.9618083446216245,
+   "Pharynx": 0.9774353595090397,
+   "Soft Palate": 0.942806376863808
+  },
+  "dv_img0069": {
+   "Mandible": 0.9853585180473768,
+   "Upper Skull": 0.9714491205845893,
+   "Upper Teeth": 0.9831109218247208,
+   "Lower Teeth": 0.9831544900736955,
+   "Mandibular Canal": 0.9477289986912052,
+   "Maxillary Sinus": 0.9872890512714845,
+   "Nasal Cavity": 0.9669621623544654,
+   "Pharynx": 0.9779634416227145,
+   "Soft Palate": 0.9401871766801898
+  },
+  "dv_img0074": {
+   "Mandible": 0.9893148216460946,
+   "Upper Skull": 0.978064992066512,
+   "Upper Teeth": 0.9822495913478837,
+   "Lower Teeth": 0.9816812934082405,
+   "Mandibular Canal": 0.9519514155577387,
+   "Maxillary Sinus": 0.986980329756969,
+   "Nasal Cavity": 0.9657575474293109,
+   "Pharynx": 0.9791554749753782,
+   "Soft Palate": 0.9649661298329713
+  },
+  "dv_img0079": {
+   "Mandible": 0.9863202227227923,
+   "Upper Skull": 0.9735962882263246,
+   "Upper Teeth": 0.9811918807831587,
+   "Lower Teeth": 0.9789503525993125,
+   "Mandibular Canal": 0.8933436703953926,
+   "Maxillary Sinus": 0.9880372815587186,
+   "Nasal Cavity": 0.9699183121375997,
+   "Pharynx": 0.9841285407298858,
+   "Soft Palate": 0.9438461328306423
+  },
+  "dv_img0085": {
+   "Mandible": 0.9845579149982107,
+   "Upper Skull": 0.9737955861835373,
+   "Upper Teeth": 0.9782954781074613,
+   "Lower Teeth": 0.9693495951987006,
+   "Mandibular Canal": 0.8821892762033468,
+   "Maxillary Sinus": 0.9686708403786359,
+   "Nasal Cavity": 0.9561472477647137,
+   "Pharynx": 0.981243598479763,
+   "Soft Palate": 0.9432602271163562
+  },
+  "dv_img0090": {
+   "Mandible": 0.9874841478947235,
+   "Upper Skull": 0.9747902423083046,
+   "Upper Teeth": 0.9773327570474956,
+   "Lower Teeth": 0.9712435443625602,
+   "Mandibular Canal": 0.9435902122506797,
+   "Maxillary Sinus": 0.9870743889059812,
+   "Nasal Cavity": 0.9679255245525988,
+   "Pharynx": 0.9824538040596694,
+   "Soft Palate": 0.9586094418078432
+  },
+  "dv_img0095": {
+   "Mandible": 0.986340653923128,
+   "Upper Skull": 0.9699180717369399,
+   "Upper Teeth": 0.9787843016181464,
+   "Lower Teeth": 0.9753377898672785,
+   "Mandibular Canal": 0.9414947308919126,
+   "Maxillary Sinus": 0.9875711027750875,
+   "Nasal Cavity": 0.9638458908927311,
+   "Pharynx": 0.978430647487335,
+   "Soft Palate": 0.9427604261562509
+  },
+  "dv_img0101": {
+   "Mandible": 0.9873257631191451,
+   "Upper Skull": 0.9783875812194482,
+   "Upper Teeth": 0.9827989883779807,
+   "Lower Teeth": 0.9804295495959262,
+   "Mandibular Canal": 0.9476366625565146,
+   "Maxillary Sinus": 0.9831429224805762,
+   "Nasal Cavity": 0.9598257511700633,
+   "Pharynx": 0.977230259433823,
+   "Soft Palate": 0.942326936333919
+  },
+  "tf3_ToothFairy3F_001": {
+   "Mandible": 0.9872720233238824,
+   "Upper Skull": 0.9642841658935029,
+   "Upper Teeth": 0.9715361635881685,
+   "Lower Teeth": 0.9727144528445447,
+   "Mandibular Canal": 0.8589139822156688,
+   "Maxillary Sinus": 0.9837536802525628,
+   "Pharynx": 0.9694156791997478,
+   "Soft Palate": 0.9353950652224252
+  },
+  "tf3_ToothFairy3F_011": {
+   "Mandible": 0.9793816011398966,
+   "Upper Skull": 0.9485772166326184,
+   "Upper Teeth": 0.8999668086518781,
+   "Lower Teeth": 0.9282235414272948,
+   "Mandibular Canal": 0.9022802052414809,
+   "Maxillary Sinus": 0.9878763134710016,
+   "Nasal Cavity": 0.9037442593155866,
+   "Pharynx": 0.9731243044662695,
+   "Soft Palate": 0.9060054208801854
+  },
+  "tf3_ToothFairy3F_023": {
+   "Mandible": 0.9882501325999904,
+   "Upper Skull": 0.9764011554781551,
+   "Upper Teeth": 0.9875041067387019,
+   "Lower Teeth": 0.9883271759908097,
+   "Mandibular Canal": 0.9346228801762434,
+   "Maxillary Sinus": 0.7319619281547436,
+   "Pharynx": 0.9896489455852248,
+   "Soft Palate": 0.965649482276886
+  },
+  "tf3_ToothFairy3F_033": {
+   "Mandible": 0.9875154395162986,
+   "Upper Skull": 0.9782368823970508,
+   "Upper Teeth": 0.9850688362059395,
+   "Lower Teeth": 0.986173344188933,
+   "Mandibular Canal": 0.9179436560462143,
+   "Maxillary Sinus": 0.9513852587558809,
+   "Pharynx": 0.9838930482563888,
+   "Soft Palate": 0.9142776944725548
+  },
+  "tf3_ToothFairy3F_045": {
+   "Mandible": 0.9833040683088956,
+   "Upper Skull": 0.9433002127072911,
+   "Upper Teeth": 0.9589523292644412,
+   "Lower Teeth": 0.9683916055734478,
+   "Mandibular Canal": 0.9200307464556169,
+   "Maxillary Sinus": 0.9706496035609959,
+   "Pharynx": 0.9750977220939111,
+   "Soft Palate": 0.9570256344387742
+  },
+  "tf3_ToothFairy3F_055": {
+   "Mandible": 0.9896778883617006,
+   "Upper Skull": 0.9767512748524609,
+   "Upper Teeth": 0.9843523593314984,
+   "Lower Teeth": 0.965192647246504,
+   "Mandibular Canal": 0.9084543968415533,
+   "Maxillary Sinus": 0.978231884057971,
+   "Pharynx": 0.9867333957846052,
+   "Soft Palate": 0.9278077541815158
+  },
+  "tf3_ToothFairy3F_065": {
+   "Mandible": 0.9851439330066499,
+   "Upper Skull": 0.9572985709684528,
+   "Upper Teeth": 0.9726015185941613,
+   "Lower Teeth": 0.9611128127954827,
+   "Mandibular Canal": 0.8830011938653687,
+   "Maxillary Sinus": 0.9907666004478272,
+   "Nasal Cavity": 0.922081292934886,
+   "Pharynx": 0.9881534044485154,
+   "Soft Palate": 0.949421459374066
+  },
+  "tf3_ToothFairy3P_008": {
+   "Mandible": 0.9863846480075124,
+   "Upper Skull": 0.9509090216107025,
+   "Upper Teeth": 0.97944831232925,
+   "Lower Teeth": 0.9879822638082345,
+   "Mandibular Canal": 0.8565929490145276,
+   "Pharynx": 0.9179685668592384,
+   "Soft Palate": 0.9239874289346375
+  },
+  "tf3_ToothFairy3P_018": {
+   "Mandible": 0.9899768219923186,
+   "Upper Skull": 0.9381586027193529,
+   "Upper Teeth": 0.9760538139885204,
+   "Lower Teeth": 0.9891109771918315,
+   "Mandibular Canal": 0.889129803504017,
+   "Maxillary Sinus": 0.0,
+   "Nasal Cavity": 0.32413793103448274,
+   "Pharynx": 0.9804532228717082,
+   "Soft Palate": 0.9320000985148881
+  },
+  "tf3_ToothFairy3P_028": {
+   "Mandible": 0.9873617889826979,
+   "Upper Skull": 0.8778857461162345,
+   "Upper Teeth": 0.9442930577218355,
+   "Lower Teeth": 0.9904900734838991,
+   "Mandibular Canal": 0.8394123748913622,
+   "Pharynx": 0.9846907342625216,
+   "Soft Palate": 0.9258950609092598
+  },
+  "tf3_ToothFairy3P_038": {
+   "Mandible": 0.9879551295294686,
+   "Lower Teeth": 0.9102293644061015,
+   "Mandibular Canal": 0.9175009948269002,
+   "Pharynx": 0.9887183900617061,
+   "Soft Palate": 0.8760774733903333
+  },
+  "tf3_ToothFairy3P_050": {
+   "Mandible": 0.9868972395167608,
+   "Upper Skull": 0.5740402193784278,
+   "Upper Teeth": 0.71799002359857,
+   "Lower Teeth": 0.9833853260026542,
+   "Mandibular Canal": 0.9018277485461091,
+   "Pharynx": 0.9791298011219146,
+   "Soft Palate": 0.8466362412581673
+  },
+  "tf3_ToothFairy3P_061": {
+   "Mandible": 0.9884254388882717,
+   "Upper Skull": 0.907108591365024,
+   "Upper Teeth": 0.7302934291872796,
+   "Lower Teeth": 0.8667220756120351,
+   "Mandibular Canal": 0.9094036268461395,
+   "Pharynx": 0.9802197879883637,
+   "Soft Palate": 0.9382985334706238
+  },
+  "tf3_ToothFairy3P_077": {
+   "Mandible": 0.9878204013884294,
+   "Upper Skull": 0.21686746987951808,
+   "Upper Teeth": NaN,
+   "Mandibular Canal": 0.8693210732272273,
+   "Pharynx": 0.9741565090199903,
+   "Soft Palate": 0.8950739489926633
+  },
+  "tf3_ToothFairy3P_088": {
+   "Mandible": 0.9891285121145102,
+   "Upper Skull": 0.8850987432675045,
+   "Upper Teeth": 0.7982108769374625,
+   "Lower Teeth": 0.974804138869382,
+   "Mandibular Canal": 0.9214705312762249,
+   "Pharynx": 0.9789422050197392,
+   "Soft Palate": 0.9093834613165254
+  },
+  "tf3_ToothFairy3P_098": {
+   "Mandible": 0.9848909341466544,
+   "Upper Skull": 0.9222520107238605,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.975092525685752,
+   "Mandibular Canal": 0.8659790141271623,
+   "Pharynx": 0.9838393178199003,
+   "Soft Palate": 0.9146348400896545
+  },
+  "tf3_ToothFairy3P_108": {
+   "Mandible": 0.9848171551169321,
+   "Upper Skull": 0.004704037632301058,
+   "Upper Teeth": 0.6398672990695384,
+   "Lower Teeth": 0.9553875512458798,
+   "Mandibular Canal": 0.8904419899204523,
+   "Pharynx": 0.9780785034006796,
+   "Soft Palate": 0.8287078869239706
+  },
+  "tf3_ToothFairy3P_118": {
+   "Mandible": 0.9862904680058796,
+   "Upper Teeth": 0.47730571953934,
+   "Lower Teeth": 0.9578286885700039,
+   "Mandibular Canal": 0.8832426319881264,
+   "Pharynx": 0.9794560091335457,
+   "Soft Palate": 0.8552822597370277
+  },
+  "tf3_ToothFairy3P_128": {
+   "Mandible": 0.9882820178696115,
+   "Upper Skull": 0.9146415094339623,
+   "Upper Teeth": 0.9636122735865824,
+   "Lower Teeth": 0.9838841521548127,
+   "Mandibular Canal": 0.8639278789586199,
+   "Pharynx": 0.9703644292271296,
+   "Soft Palate": 0.9252662138652045
+  },
+  "tf3_ToothFairy3P_138": {
+   "Mandible": 0.9872888324992364,
+   "Upper Skull": 0.03187250996015936,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9867318786489065,
+   "Mandibular Canal": 0.897468030690537,
+   "Pharynx": 0.9726902681058112,
+   "Soft Palate": 0.9343969381713609
+  },
+  "tf3_ToothFairy3P_148": {
+   "Mandible": 0.9880058600236117,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9771807970818448,
+   "Mandibular Canal": 0.8966258401282795,
+   "Pharynx": 0.981607317071364,
+   "Soft Palate": 0.9265971632925203
+  },
+  "tf3_ToothFairy3P_197": {
+   "Mandible": 0.9895062776539145,
+   "Upper Skull": 0.9498408411305103,
+   "Upper Teeth": 0.9855323220037963,
+   "Lower Teeth": 0.9854787533412362,
+   "Mandibular Canal": 0.8693538787117254,
+   "Pharynx": 0.9861794262437782,
+   "Soft Palate": 0.9158536466029298
+  },
+  "tf3_ToothFairy3P_207": {
+   "Mandible": 0.9874683426043527,
+   "Upper Skull": 0.4182692307692308,
+   "Upper Teeth": 0.9552763039498589,
+   "Lower Teeth": 0.9808551920375502,
+   "Mandibular Canal": 0.9220153275056879,
+   "Pharynx": 0.9772900451594404,
+   "Soft Palate": 0.8693818249988283
+  },
+  "tf3_ToothFairy3P_217": {
+   "Mandible": 0.9889710267742768,
+   "Upper Skull": 0.9164834235453315,
+   "Upper Teeth": 0.9865654251489167,
+   "Lower Teeth": 0.9872869535917187,
+   "Mandibular Canal": 0.9077112949673173,
+   "Pharynx": 0.9878977969327045,
+   "Soft Palate": 0.9136808083446238
+  },
+  "tf3_ToothFairy3P_237": {
+   "Mandible": 0.9891427057321568,
+   "Upper Teeth": 0.978102585510515,
+   "Lower Teeth": 0.9846475597262135,
+   "Mandibular Canal": 0.8699087881228639,
+   "Pharynx": 0.9809603191194428,
+   "Soft Palate": 0.9016232797920839
+  },
+  "tf3_ToothFairy3P_247": {
+   "Mandible": 0.9911812753980555,
+   "Upper Teeth": 0.9263266842303349,
+   "Lower Teeth": 0.9835439894388749,
+   "Mandibular Canal": 0.8608175142861451,
+   "Pharynx": 0.980014695297056,
+   "Soft Palate": 0.830194496544282
+  },
+  "tf3_ToothFairy3P_257": {
+   "Mandible": 0.9812907459960545,
+   "Upper Skull": 0.7731322823851954,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.918721102274829,
+   "Mandibular Canal": 0.9308313277176093,
+   "Pharynx": 0.9712161048719625,
+   "Soft Palate": 0.8252314407406104
+  },
+  "tf3_ToothFairy3P_323": {
+   "Mandible": 0.9897248427472994,
+   "Upper Teeth": 0.8629159231657395,
+   "Lower Teeth": 0.9837985899180461,
+   "Mandibular Canal": 0.8897010074222603,
+   "Pharynx": 0.9803562452590501,
+   "Soft Palate": 0.9005391763221292
+  },
+  "tf3_ToothFairy3P_333": {
+   "Mandible": 0.9902293005900447,
+   "Upper Skull": 0.9700826191820188,
+   "Upper Teeth": 0.9888785365043532,
+   "Lower Teeth": 0.989780724874918,
+   "Mandibular Canal": 0.893390959841527,
+   "Pharynx": 0.977659525078804,
+   "Soft Palate": 0.9103914464136917
+  },
+  "tf3_ToothFairy3P_343": {
+   "Mandible": 0.9907214992019211,
+   "Upper Skull": 0.9716522472803724,
+   "Upper Teeth": 0.9869647244647245,
+   "Lower Teeth": 0.988616235297793,
+   "Mandibular Canal": 0.8820262710301441,
+   "Nasal Cavity": 0.47212047212047215,
+   "Pharynx": 0.9817783367825711,
+   "Soft Palate": 0.9564841781471907
+  },
+  "tf3_ToothFairy3P_353": {
+   "Mandible": 0.9864482940615802,
+   "Upper Teeth": 0.9642057569296375,
+   "Lower Teeth": 0.9775197242560166,
+   "Mandibular Canal": 0.9129401740213349,
+   "Pharynx": 0.9707636830592118,
+   "Soft Palate": 0.9130846568556025
+  },
+  "tf3_ToothFairy3P_363": {
+   "Mandible": 0.9873923146413798,
+   "Upper Skull": 0.730410447761194,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.9865388854726241,
+   "Mandibular Canal": 0.9105998487441787,
+   "Pharynx": 0.9671216399875615,
+   "Soft Palate": 0.8564867967853043
+  },
+  "tf3_ToothFairy3P_373": {
+   "Mandible": 0.9896103910069635,
+   "Upper Skull": 0.8513806172171088,
+   "Upper Teeth": 0.9732342309410665,
+   "Lower Teeth": 0.9843022470058744,
+   "Mandibular Canal": 0.9029459988364098,
+   "Pharynx": 0.984650222401941,
+   "Soft Palate": 0.9485916085092071
+  },
+  "tf3_ToothFairy3P_385": {
+   "Mandible": 0.9863532407911602,
+   "Upper Skull": 0.4280282455187398,
+   "Upper Teeth": 0.003946861763573354,
+   "Mandibular Canal": 0.9109539121114684,
+   "Pharynx": 0.9732452040184861,
+   "Soft Palate": 0.9452881214894945
+  },
+  "tf3_ToothFairy3P_395": {
+   "Mandible": 0.9896957292996814,
+   "Upper Skull": 0.8178623467900917,
+   "Upper Teeth": 0.9795767035514916,
+   "Lower Teeth": 0.9908708513473978,
+   "Mandibular Canal": 0.918841339718201,
+   "Pharynx": 0.974483717433375,
+   "Soft Palate": 0.9571677633428941
+  },
+  "tf3_ToothFairy3P_405": {
+   "Mandible": 0.9904205553838683,
+   "Upper Skull": NaN,
+   "Upper Teeth": 0.969940621045459,
+   "Lower Teeth": 0.9819462178654585,
+   "Mandibular Canal": 0.8945605009245867,
+   "Pharynx": 0.9464576908270651,
+   "Soft Palate": 0.9220423612788918
+  },
+  "tf3_ToothFairy3P_415": {
+   "Mandible": 0.9904721737097308,
+   "Upper Skull": 0.6060606060606061,
+   "Upper Teeth": 0.9703060560017365,
+   "Lower Teeth": 0.9835165312595039,
+   "Mandibular Canal": 0.9215650502912881,
+   "Pharynx": 0.9901273339942448,
+   "Soft Palate": 0.21721409733876768
+  },
+  "tf3_ToothFairy3P_426": {
+   "Mandible": 0.986912453071228,
+   "Upper Skull": 0.2184228890439637,
+   "Upper Teeth": 0.856150558062218,
+   "Lower Teeth": 0.9824010161616499,
+   "Mandibular Canal": 0.9141714938402545,
+   "Pharynx": 0.9783244519518819,
+   "Soft Palate": 0.9098290373947889
+  },
+  "tf3_ToothFairy3P_436": {
+   "Mandible": 0.987394283880727,
+   "Upper Skull": 0.7201834862385321,
+   "Lower Teeth": NaN,
+   "Mandibular Canal": 0.9059890757717943,
+   "Pharynx": 0.9829185301345851,
+   "Soft Palate": 0.9156350548072204
+  },
+  "tf3_ToothFairy3P_447": {
+   "Mandible": 0.9915954151309,
+   "Upper Skull": 0.9052562045862036,
+   "Upper Teeth": 0.9844106463878327,
+   "Lower Teeth": 0.987901671186391,
+   "Mandibular Canal": 0.8837649632886626,
+   "Pharynx": 0.9785825589463029,
+   "Soft Palate": 0.8964594468025006
+  },
+  "tf3_ToothFairy3P_458": {
+   "Mandible": 0.989799086250958,
+   "Upper Skull": 0.9011720445666329,
+   "Upper Teeth": 0.9729796843232505,
+   "Lower Teeth": 0.9893689265249995,
+   "Mandibular Canal": 0.8925720790127569,
+   "Pharynx": 0.9812579298012585,
+   "Soft Palate": 0.8392661951983986
+  },
+  "tf3_ToothFairy3P_468": {
+   "Mandible": 0.9870964485191405,
+   "Upper Skull": 0.0,
+   "Lower Teeth": 0.9862010686429914,
+   "Mandibular Canal": 0.8974692470422314,
+   "Pharynx": 0.9866015004408847,
+   "Soft Palate": 0.8632841224051134
+  },
+  "tf3_ToothFairy3P_480": {
+   "Mandible": 0.9868098455883948,
+   "Upper Skull": 0.853988603988604,
+   "Upper Teeth": 0.9512356090049131,
+   "Lower Teeth": 0.9864012815707457,
+   "Mandibular Canal": 0.9042207236504296,
+   "Pharynx": 0.9724403378089861,
+   "Soft Palate": 0.9421733633420909
+  },
+  "tf3_ToothFairy3P_493": {
+   "Mandible": 0.9884818310173145,
+   "Upper Skull": 0.963972367155391,
+   "Upper Teeth": 0.9846190476190476,
+   "Lower Teeth": 0.9896259011577747,
+   "Mandibular Canal": 0.9175329624884448,
+   "Pharynx": 0.9813945435921112,
+   "Soft Palate": 0.9516928569786774
+  },
+  "tf3_ToothFairy3P_504": {
+   "Mandible": 0.9880236070108527,
+   "Upper Skull": 0.8069761960876738,
+   "Upper Teeth": 0.9709243510644211,
+   "Lower Teeth": 0.9849439863783521,
+   "Mandibular Canal": 0.9264398739778399,
+   "Pharynx": 0.9771627412950787,
+   "Soft Palate": 0.6526138895992402
+  },
+  "tf3_ToothFairy3P_514": {
+   "Mandible": 0.9862448318993018,
+   "Upper Skull": 0.5471698113207547,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.916398516234274,
+   "Mandibular Canal": 0.9197532405904243,
+   "Pharynx": 0.9761729399231881,
+   "Soft Palate": 0.838790486802167
+  },
+  "tf3_ToothFairy3P_526": {
+   "Mandible": 0.9871951986200814,
+   "Upper Skull": 0.0985352862849534,
+   "Lower Teeth": 0.9859739444005137,
+   "Mandibular Canal": 0.9356120047077285,
+   "Pharynx": 0.9757744553916842,
+   "Soft Palate": 0.9196614303134639
+  },
+  "tf3_ToothFairy3P_538": {
+   "Mandible": 0.988769485679505,
+   "Upper Skull": 0.9118058177143382,
+   "Upper Teeth": 0.9883024476214275,
+   "Lower Teeth": 0.9813586200785871,
+   "Mandibular Canal": 0.9210309278350516,
+   "Pharynx": 0.9882469642588378,
+   "Soft Palate": 0.9193462897526502
+  },
+  "tf3_ToothFairy3S_0000": {
+   "Mandible": 0.9817799339045252,
+   "Upper Skull": 0.0,
+   "Upper Teeth": NaN,
+   "Lower Teeth": 0.8662935066398693,
+   "Mandibular Canal": 0.9082683966543629,
+   "Pharynx": 0.9146811405877456,
+   "Soft Palate": 0.8968976915759289
+  },
+  "tf3_ToothFairy3S_0010": {
+   "Mandible": 0.9882648314235791,
+   "Upper Skull": 0.9795624735668024,
+   "Upper Teeth": 0.9822430980263281,
+   "Lower Teeth": 0.9825287344607145,
+   "Mandibular Canal": 0.9501314957222278,
+   "Pharynx": 0.9793051225031478,
+   "Soft Palate": 0.9096592329900657
+  }
+ }
+}
