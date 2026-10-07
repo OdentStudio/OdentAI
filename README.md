@@ -346,6 +346,27 @@ previously dropped as unneeded, are direct dependencies of the provider; on
 the build machine the system CUDA satisfied them, and the test was not honest.
 Windows needs none of this: DirectML is one 19 MB library.
 
+**Maxwell and older cards (compute capability below 6.0) are not covered by
+this build.** The CUDA provider in current onnxruntime carries no kernels for
+them, so the run silently lands on the CPU. On Windows the question does not
+arise — DirectML drives any card that has a Direct3D 12 driver, Maxwell
+included.
+
+A user reported a working **legacy profile on Linux** (2026-10-07; reported to
+us, not built or measured here): onnxruntime 1.17.0 with CUDA runtime 11.8.89,
+cuDNN 8.9.6.50, cuBLAS 11.11.3.6, cuFFT 10.9.0.58 and cuRAND 10.3.0.86, on a
+Maxwell sm_52 card. It is a separate build — `build_linux.sh` pins
+onnxruntime-gpu 1.24.4 and the CUDA 12 wheels — and two things are worth
+knowing before anyone tries it:
+
+- The weights load: they are opset 17 with IR version 8, and onnxruntime 1.17
+  takes opset 20. Checked in the files themselves, not assumed.
+- They are **float16**, and Maxwell has no fast half-precision arithmetic (that
+  starts at sm_53, and on GeForce Pascal it is still crippled). Expect the
+  speed-up that fp16 gives elsewhere to turn into a slow-down there. If it
+  does, export fp32 weights — `scripts/export_onnx.py --precision fp32` — and
+  replace both files; `dental9.json` records which precision it is.
+
 CPU and GPU labels agree on 99.993 % of voxels — the difference is purely
 arithmetic.
 
