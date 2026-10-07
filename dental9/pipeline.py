@@ -206,23 +206,25 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
     return out
 
 
-def _weak_side(health: dict, thr: dict) -> Optional[tuple]:
-    """The half of the grid to redo, when exactly one side is the problem.
+def _sides_to_redo(health: dict, thr: dict) -> List[Optional[tuple]]:
+    """The halves of the grid the second pass should take, one box each.
 
-    Half the box is half the memory and half the time, and the second pass has
-    nothing to fix on a side that already looks sound. Both sides bad, or only
-    one side in the frame, and the whole mandible is taken as before.
+    Peak memory is a maximum, not a sum, so two halves in turn cost half of
+    what one whole-jaw box costs; the extra time is only the overlap of their
+    margins. Each is also merged and rolled back on its own, so a side the pass
+    improved is no longer dragged back by the other one failing.
+
+    A side that already looks sound is left alone entirely. With only one side
+    in the frame there is nothing to split, and `[None]` means the whole
+    mandible as before.
     """
     sides = health.get("side_list") or []
     if len(sides) != 2:
-        return None
-    sound = [s for s in sides
-             if s["vol"] >= thr["side_volume_below_cm3"]
-             and s["comps"] <= thr["components_per_side_above"]]
-    if len(sound) != 1:
-        return None
-    weak = sides[0] if sides[1] is sound[0] else sides[1]
-    return weak["x"]
+        return [None]
+    bad = [s for s in sides
+           if s["vol"] < thr["side_volume_below_cm3"]
+           or s["comps"] > thr["components_per_side_above"]]
+    return [s["x"] for s in bad] if bad else [None]
 
 
 def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
@@ -337,14 +339,20 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     log("  canal looks broken (" + "; ".join(health["reasons"]) + ") — second pass"
         if health["reasons"] else "  canal second pass (forced)")
     if opts.canal_refine_mode == "fine" and src is not None:
-        side = None if opts.canal_refine_force else _weak_side(health, thr)
-        if side is not None:
-            log(f"  only the broken side is redone (x {side[0]}..{side[1]})")
-        got = _fine_canal(src, grid, labels, sess, cfg, opts, log, side)
-        if got is None:
-            return labels
-        canal2, covered = got
-        return _merge_canal(labels, canal2, health, spacing, thr, log, covered)
+        boxes = [None] if opts.canal_refine_force else _sides_to_redo(health, thr)
+        if boxes != [None]:
+            log(f"  {len(boxes)} of 2 sides to redo, one box each: "
+                + ", ".join(f"x {b[0]}..{b[1]}" for b in boxes))
+        for box in boxes:
+            got = _fine_canal(src, grid, labels, sess, cfg, opts, log, box)
+            if got is None:
+                continue
+            canal2, covered = got
+            # Health is re-read per box: after the first side the picture has
+            # changed, and the rollback below must compare like with like.
+            labels = _merge_canal(labels, canal2, _canal_health(labels, spacing, thr),
+                                  spacing, thr, log, covered)
+        return labels
     idx = np.argwhere(mand)
     pad = int(ref.get("margin_voxels", 20))
     lo = np.maximum(idx.min(0) - pad, 0)
