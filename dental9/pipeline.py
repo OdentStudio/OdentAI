@@ -234,6 +234,21 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
         log(f"  fine pass skipped: the mandible box is {n / 1e6:.0f} M voxels "
             f"at {opts.canal_fine_spacing} mm")
         return None
+    # This pass is NOT in the estimate logged before inference: that one is for
+    # the 0.3 mm grid, while here a second logit buffer is allocated with the
+    # first one still alive. Measured 2026-10-07 on a 0.15 mm scan, 334^3 grid:
+    # peak 6.5 GB without this pass and 11.0 GB with it, so a 60.6 M voxel box
+    # cost 4.5 GB — about 84 bytes per voxel, half of it the logit buffer and
+    # the rest the onnxruntime arena for the new input shape and the resampling
+    # copies. An honest skip beats paging to disk: the other eight classes are
+    # already done, and the canal from the first pass stays.
+    need = n * (cfg["num_classes"] * (2 if n > 150_000_000 else 4) + 44) / 2 ** 30
+    free = _free_ram_gb()
+    log(f"  fine pass needs about {need:.1f} GB"
+        + (f", {free:.1f} GB free" if free else ""))
+    if free and need > free - 1.0:
+        log("  fine pass skipped: it would not fit in free memory")
+        return None
     fine = _io.to_training_grid(sub, opts.canal_fine_spacing)
     v = _io.normalize_ct(sitk.GetArrayFromImage(fine).astype(np.float32),
                          _norm_props(cfg["normalization"]))
