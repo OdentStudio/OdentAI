@@ -50,6 +50,10 @@ DEFAULT_TRIGGERS = {
 # The fine canal pass is skipped above this many voxels: a normal mandible
 # with its margin is 60-120 M at 0.25 mm, which takes 25-75 s on a GPU.
 FINE_MAX_VOXELS = 150_000_000
+# Below this the frame holds part of a mandible, not a whole one, and the two
+# sides cannot be compared. Measured on the 70 labelled held-out cases: a whole
+# mandible is 96 to 124 mm wide, a hemimandible about 50.
+WHOLE_JAW_MM = 75.0
 
 
 @dataclass
@@ -168,11 +172,18 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
     mid = (mi[:, 2].min() + mi[:, 2].max()) // 2
     span_mand = float(mi[:, 1].max() - mi[:, 1].min() + 1) * spacing[1]
 
+    # A frame cropped to one side of the jaw has one canal, not two, and
+    # splitting it would compare two quarters of the same hemimandible: one of
+    # them has no canal in it and every side trigger fires on a sound scan.
+    # Caught 2026-10-07 on a scan cropped to half the jaw — and it is why a
+    # cropped scan used to get the second pass every single time.
+    out["whole_jaw"] = whole = (float(mi[:, 2].max() - mi[:, 2].min() + 1)
+                                * spacing[2]) >= WHOLE_JAW_MM
     sides = []
-    for sl in (slice(0, mid), slice(mid, None)):
+    for sl in ((slice(0, mid), slice(mid, None)) if whole else (slice(None),)):
         half_m = mand[:, :, sl]
         # A side where the frame cuts the mandible off cannot be held to account.
-        if half_m.sum() < 0.2 * mand.sum():
+        if whole and half_m.sum() < 0.2 * mand.sum():
             continue
         half = np.zeros_like(canal)
         half[:, :, sl] = canal[:, :, sl]
@@ -193,11 +204,14 @@ def _canal_health(labels: np.ndarray, spacing, thr: dict) -> dict:
                span_frac=min(x["span"] for x in sides) / span_mand if span_mand else 0.0,
                comps_max=max(x["comps"] for x in sides))
 
-    if out["volume_cm3"] < thr["volume_below_cm3"]:
+    # The total threshold counts on two canals being in the frame; with one
+    # the side threshold below is the one that applies.
+    if len(sides) == 2 and out["volume_cm3"] < thr["volume_below_cm3"]:
         out["reasons"].append(f"volume {out['volume_cm3']:.2f} cm3")
     if out["vol_min"] < thr["side_volume_below_cm3"]:
         out["reasons"].append(f"weak side {out['vol_min']:.2f} cm3")
-    if out["asym"] < thr["asymmetry_below"]:
+    # Asymmetry needs two sides to mean anything; with one it is degenerate.
+    if len(sides) == 2 and out["asym"] < thr["asymmetry_below"]:
         out["reasons"].append(f"asymmetry {out['asym']:.2f}")
     if out["span_frac"] < thr["span_fraction_below"]:
         out["reasons"].append(f"course covered {out['span_frac']:.2f}")
@@ -338,6 +352,8 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
 
     log("  canal looks broken (" + "; ".join(health["reasons"]) + ") — second pass"
         if health["reasons"] else "  canal second pass (forced)")
+    if not health.get("whole_jaw", True):
+        log("  part of a mandible in the frame: one canal, judged on its own")
     if opts.canal_refine_mode == "fine" and src is not None:
         boxes = [None] if opts.canal_refine_force else _sides_to_redo(health, thr)
         if boxes != [None]:

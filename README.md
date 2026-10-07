@@ -274,6 +274,20 @@ grid all failed. The older pass, intensity matching onto the training curve,
 is still available as `--canal-refine-mode match`; on 22 clinic scans it helped
 on none and on that one made things worse.
 
+**A frame cropped to one side of the jaw is judged differently.** The health
+check compares the two canals against each other, so on a partial mandible it
+used to split one hemimandible into quarters, find no canal in the medial one
+and trip every side trigger on a perfectly sound scan — the second pass then
+ran on every cropped scan, which is the forced regime measured as harmful just
+below. Since 2026-10-07 a mandible narrower than 75 mm is taken as part of a
+jaw (measured: a whole one is 96-124 mm wide across the 70 labelled cases) and
+its single canal is judged on the per-side thresholds alone, with the
+whole-volume and asymmetry triggers left out. Of the five clinic scans where
+the trigger used to fire, four were post-op crops 33-61 mm wide that needed
+nothing. The price is honest: without a sound side to compare against, a canal
+that is merely broken rather than missing may now go unnoticed on a cropped
+scan.
+
 **Neither pass may be made mandatory.** 2026-09-16, four clinic scans with a
 healthy canal: a forced match pass lowered the agreement with DentalSegmentator
 from 0.871 to 0.858 and on one scan broke the canal, only the rollback saving
