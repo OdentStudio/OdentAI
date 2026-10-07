@@ -245,12 +245,27 @@ built (one float32 field per class while the buffer is still alive), plus
 the measurement within 0.1 GB. A 200 mm frame (669³) needs about 19 GB — on a
 16 GB laptop that means swapping; the crop box fixes it.
 
-**The second canal pass must not be made mandatory** — checked on 2026-09-16
-on four clinic scans with a healthy canal: a forced second pass lowered the
-agreement with DentalSegmentator from 0.871 to 0.858, worse on three of four,
-and on one it broke the canal; only the rollback saved it. Intensity matching
-cures one specific illness and harms a healthy scan. The
+**The second canal pass runs on a 0.25 mm grid** (`--canal-refine-mode fine`,
+the default since 2026-10-07): the mandible is predicted again with 15 mm of
+context around it and only the canal is taken. Thin canal walls fall below what
+the network resolves at 0.3 mm — on a 0.15 mm scan the left canal came out as
+two fragments covering half its course (105 mm3) and came back whole at 0.25 mm
+(305 mm3), while rotations, tile shifts, mirroring, denoising and a 0.35 mm
+grid all failed. The older pass, intensity matching onto the training curve,
+is still available as `--canal-refine-mode match`; on 22 clinic scans it helped
+on none and on that one made things worse.
+
+**Neither pass may be made mandatory.** 2026-09-16, four clinic scans with a
+healthy canal: a forced match pass lowered the agreement with DentalSegmentator
+from 0.871 to 0.858 and on one scan broke the canal, only the rollback saving
+it. 2026-10-07, measured against manual labels on all 70 held-out cases:
+forcing the fine pass costs 0.0075 canal Dice, forcing match 0.0039. The
 `--canal-refine-always` flag exists only for such checks.
+
+On those 70 labelled cases the trigger never fires, so the fine pass is
+byte-identical to the old behaviour there — the labelled set cannot measure
+this change, because it is resampled to 0.3 mm while clinic scans arrive at
+0.08–0.25 mm. Full numbers: `docs/canal_fine_eval/REPORT_dice_ru.md`.
 
 ## Accuracy against manual labels
 
