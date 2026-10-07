@@ -313,7 +313,17 @@ def _fine_canal(src: sitk.Image, grid: sitk.Image, labels: np.ndarray, sess,
     # What the box covered, so the merge leaves the untouched side alone.
     ones = sitk.Image(fine.GetSize(), sitk.sitkUInt8) + 1
     ones.CopyInformation(fine)
-    return back(c), back(ones)
+    canal, covered = back(c), back(ones)
+    if x_range is not None:
+        # The box reaches 15 mm past the midline for context, but only the
+        # half being redone may change: the merge's rollback looks at the total
+        # volume, which would not notice a sound canal swapped for a bigger and
+        # worse one (Codex review, 2026-10-07).
+        half = np.zeros(canal.shape, bool)
+        half[:, :, x_range[0]:x_range[1]] = True
+        canal &= half
+        covered &= half
+    return canal, covered
 
 
 def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
@@ -338,6 +348,9 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     Neither pass may be forced on every scan. Measured against manual labels on
     those 70: forcing fine costs 0.0075 canal Dice, forcing match 0.0039.
     """
+    # A misspelt mode must not quietly become the other pass.
+    if opts.canal_refine_mode not in ("fine", "match"):
+        raise ValueError(f"unknown canal_refine_mode: {opts.canal_refine_mode!r}")
     ref = cfg.get("canal_refine")
     if not ref:
         return labels
