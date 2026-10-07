@@ -247,7 +247,15 @@ the measurement within 0.1 GB. A 200 mm frame (669³) needs about 19 GB — on a
 
 **The second canal pass runs on a 0.25 mm grid** (`--canal-refine-mode fine`,
 the default since 2026-10-07): the mandible is predicted again with 15 mm of
-context around it and only the canal is taken. Thin canal walls fall below what
+context around it and only the canal is taken. When one side is sound and the
+other is not, only the broken half is redone — the margin still reaches 15 mm
+past the midline, so the context is kept. That half costs half the memory, and
+the sound side then comes through untouched instead of being replaced and
+rescued by the rollback. Measured on the 0.15 mm scan: the weak side came out
+at 338 mm3 against 305 for the whole-jaw box, the sound side stayed bit-exact
+at 457, and the peak dropped from 11.0 to 7.6 GB (6.5 GB without the pass).
+The logits of this pass are accumulated in float16 — it only needs an argmax —
+which is 2.4 GB of that saving. Thin canal walls fall below what
 the network resolves at 0.3 mm — on a 0.15 mm scan the left canal came out as
 two fragments covering half its course (105 mm3) and came back whole at 0.25 mm
 (305 mm3), while rotations, tile shifts, mirroring, denoising and a 0.35 mm
