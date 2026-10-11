@@ -199,11 +199,20 @@ def readable(path: str) -> Tuple[str, Callable[[], None]]:
     is_dir = os.path.isdir(path)
     if _is_ascii(path) and (not is_dir or _tree_is_ascii(path)):
         return path, lambda: None
-    if not is_dir or _tree_is_ascii(path):
+    if is_dir and _tree_is_ascii(path):
         # only the way to the scan is non-ASCII: the short name costs nothing
         short = _short_name(path)
         if short and _is_ascii(short):
             return short, lambda: None
+    if not is_dir and _is_ascii(os.path.basename(path)):
+        # A file: the short name of its FOLDER, never of the file itself. The
+        # file's own 8.3 name upper-cases the extension (PREVIE~1.MHA), and
+        # ITK picks its reader by a case-sensitive extension — "Unable to
+        # determine ImageIO reader" for any .mha / .nii.gz / .nrrd in a
+        # non-ASCII folder (found 2026-10-11).
+        short = _short_name(os.path.dirname(path))
+        if short and _is_ascii(short):
+            return os.path.join(short, os.path.basename(path)), lambda: None
     stage = _ascii_temp_root()
     dst = os.path.join(stage, "input")
     if is_dir:
