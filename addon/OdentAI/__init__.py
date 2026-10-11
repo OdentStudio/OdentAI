@@ -1553,19 +1553,47 @@ _DENSITY_STATUS = ""                  # under the slider; empty when idle
 DENSITY_SETTLE_S = 0.3
 
 
+def _cancel_density_job(folder=None) -> None:
+    """Stop the rebuild in flight — any, or only the one working in `folder`.
+    Left running it would write into a folder just removed (recreating it)
+    and outlive Blender: _kill_running covers only the main worker (Codex
+    review, 2026-10-11)."""
+    global _DENSITY_JOB, _DENSITY_STATUS
+    job = _DENSITY_JOB
+    if job is None or (folder is not None and job[2] != folder):
+        return
+    _DENSITY_JOB, _DENSITY_STATUS = None, ""
+    proc = job[0]
+    if proc.poll() is None:
+        try:
+            proc.kill()
+            proc.wait(timeout=10)
+        except Exception:                                   # noqa: BLE001
+            pass
+
+
 def _drop_preview_dir(path) -> None:
     import shutil
     if path:
+        _cancel_density_job(path)
         shutil.rmtree(path, ignore_errors=True)
         _PREVIEW_DIRS.discard(path)
 
 
 def _drop_all_preview_dirs() -> None:
+    _cancel_density_job()
     for d in list(_PREVIEW_DIRS):
         _drop_preview_dir(d)
 
 
 atexit.register(_drop_all_preview_dirs)
+
+
+@bpy.app.handlers.persistent
+def _density_on_load(_dummy=None) -> None:
+    """Another file is being opened: a rebuild started for the old one must not
+    land on whatever object of the same name the new file has."""
+    _cancel_density_job()
 
 
 def _preview_dir(prev) -> str:
@@ -1630,20 +1658,32 @@ def _density_tick():
         _DENSITY_JOB = None
         out = proc.stdout.read() if proc.stdout else ""
         prev = bpy.data.objects.get(name)
+        # Same name is not enough: it must be the very preview the job was for
+        # (another scene, another file, a new preview made meanwhile).
+        if prev is not None and prev.get("odentai_preview_dir") != folder:
+            prev = None
         stl = os.path.join(folder, "preview.stl")
-        if proc.returncode == 0 and prev is not None and os.path.isfile(stl):
+        failed = False
+        if prev is None:
+            _DENSITY_STATUS = ""                            # nothing to load into
+        elif proc.returncode == 0 and os.path.isfile(stl):
             try:
                 _swap_preview_mesh(prev, stl)
                 prev["odentai_density"] = dens
                 _DENSITY_STATUS = ""
             except Exception as e:                          # noqa: BLE001
-                _DENSITY_STATUS = f"could not load the preview: {e}"
+                _DENSITY_STATUS, failed = f"could not load the preview: {e}", True
         else:
             # The ERROR line is what the user sees; the rest goes to the console.
             print(out)
             err = [l for l in out.splitlines() if l.startswith("ERROR")]
             _DENSITY_STATUS = err[-1] if err else "the preview could not be rebuilt"
+            failed = True
         _redraw_panels(context)
+        if failed:
+            # Stop here: retrying the same value at once would loop forever on
+            # a broken folder. The next move of the slider tries again.
+            return None
 
     prev = _live(p.preview_obj, scene)
     folder = _preview_dir(prev)
@@ -2220,12 +2260,17 @@ def register():
         bpy.utils.register_class(c)
     bpy.types.Scene.dental9 = bpy.props.PointerProperty(type=Dental9Props)
     _add_draw_handlers()
+    if _density_on_load not in bpy.app.handlers.load_pre:
+        bpy.app.handlers.load_pre.append(_density_on_load)
 
 
 def unregister():
     _kill_running()
     if bpy.app.timers.is_registered(_density_tick):
         bpy.app.timers.unregister(_density_tick)
+    _cancel_density_job()
+    if _density_on_load in bpy.app.handlers.load_pre:
+        bpy.app.handlers.load_pre.remove(_density_on_load)
     _remove_draw_handlers()
     del bpy.types.Scene.dental9
     for c in reversed(CLASSES_RNA):
