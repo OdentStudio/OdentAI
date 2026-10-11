@@ -510,6 +510,10 @@ class Dental9Props(PropertyGroup):
         name="Preview", type=bpy.types.Object,
         description="The quick bone surface the box is drawn on; the box is "
                     "read in its coordinates")
+    show_box_numbers: BoolProperty(
+        name="Exact position and size", default=False,
+        description="Type the box's centre and size in millimetres instead of "
+                    "dragging the arrows")
     preview_density: FloatProperty(
         name="Density", default=50.0, min=0.0, max=100.0, precision=0,
         subtype="PERCENTAGE", update=lambda self, ctx: _density_changed(),
@@ -2046,11 +2050,19 @@ def _draw_region(layout, context, p) -> None:
     box.prop(p, "use_crop")
     if _region_visible(p) and context.mode == "OBJECT":
         box.label(text="drag the arrows, the ring moves", icon="INFO")
-    col = box.column(align=True)
-    col.enabled = p.use_crop
-    col.prop(cbox, "location", text="Centre")
-    # Dimensions rather than scale: millimetres, whatever the box's history.
-    col.prop(cbox, "dimensions", text="Size (mm)")
+    # The numbers are for the rare exact case; the arrows are how the box is
+    # set. Folded by default so they do not take half the panel (2026-10-11).
+    # A toggle rather than layout.panel(): that one exists only from 4.2.
+    fold = box.row()
+    fold.alignment = "LEFT"
+    fold.prop(p, "show_box_numbers", emboss=False,
+              icon="TRIA_DOWN" if p.show_box_numbers else "TRIA_RIGHT")
+    if p.show_box_numbers:
+        col = box.column(align=True)
+        col.enabled = p.use_crop
+        col.prop(cbox, "location", text="Centre")
+        # Dimensions rather than scale: millimetres, whatever the box's history.
+        col.prop(cbox, "dimensions", text="Size (mm)")
     src = prev.get("odentai_source") if prev else None
     if src and os.path.normcase(src) != os.path.normcase(bpy.path.abspath(p.input_path)):
         box.label(text="the preview is of another scan", icon="ERROR")
