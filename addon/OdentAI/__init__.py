@@ -1545,7 +1545,7 @@ def _frame_box(context, box) -> None:
 # Preview folders made in this session: kept while their preview lives, removed
 # with it and on quit.
 _PREVIEW_DIRS = set()
-# The rebuild in flight: (process, density, folder, object name). One at a time.
+# The rebuild in flight: (process, density, folder, scene name). One at a time.
 _DENSITY_JOB = None
 _DENSITY_LAST_CHANGE = 0.0
 _DENSITY_STATUS = ""                  # under the slider; empty when idle
@@ -1652,14 +1652,18 @@ def _density_tick():
     except Exception:                                       # noqa: BLE001
         return None
     if _DENSITY_JOB is not None:
-        proc, dens, folder, name = _DENSITY_JOB
+        proc, dens, folder, scene_name = _DENSITY_JOB
         if proc.poll() is None:
             return 0.1
         _DENSITY_JOB = None
         out = proc.stdout.read() if proc.stdout else ""
-        prev = bpy.data.objects.get(name)
-        # Same name is not enough: it must be the very preview the job was for
-        # (another scene, another file, a new preview made meanwhile).
+        # The preview the job was for is the one its scene points at now, and
+        # only if it still has that folder: a copy of the object (another
+        # scene, a duplicate) carries the same folder but is not pointed at,
+        # and a new preview made meanwhile has a folder of its own (Codex
+        # review, 2026-10-11). No raw object reference: undo invalidates them.
+        sc = bpy.data.scenes.get(scene_name)
+        prev = _live(sc.dental9.preview_obj, sc) if sc is not None else None
         if prev is not None and prev.get("odentai_preview_dir") != folder:
             prev = None
         stl = os.path.join(folder, "preview.stl")
@@ -1706,7 +1710,7 @@ def _density_tick():
         _DENSITY_STATUS = f"could not start the engine: {e}"
         _redraw_panels(context)
         return None
-    _DENSITY_JOB = (proc, want, folder, prev.name)
+    _DENSITY_JOB = (proc, want, folder, scene.name)
     _DENSITY_STATUS = "rebuilding the preview…"
     _redraw_panels(context)
     return 0.1
