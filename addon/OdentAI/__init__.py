@@ -510,6 +510,13 @@ class Dental9Props(PropertyGroup):
         name="Preview", type=bpy.types.Object,
         description="The quick bone surface the box is drawn on; the box is "
                     "read in its coordinates")
+    preview_density: FloatProperty(
+        name="Density", default=50.0, min=0.0, max=100.0, precision=0,
+        subtype="PERCENTAGE", update=lambda self, ctx: _density_changed(),
+        description="Which tissue the preview shows. 50% is picked for each scan "
+                    "automatically; lower brings in soft tissue and skin, higher "
+                    "leaves only dense bone and teeth. Move it if the preview "
+                    "shows skin instead of the jaws")
 
 
 # The nine checkboxes are generated from the class list rather than written
@@ -1426,26 +1433,27 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
             self.report({"ERROR"}, "no scan selected")
             return {"CANCELLED"}
         self._outdir = tempfile.mkdtemp(prefix="odentai_preview_")
+        _PREVIEW_DIRS.add(self._outdir)
         return self._launch(context, [exe, self._src, "-o", self._outdir, "--preview"])
 
     def _on_done(self, context, rc):
-        import shutil
+        res = {"CANCELLED"}
         try:
-            if rc != 0:
-                return {"CANCELLED"}
-            return self._load(context)
+            if rc == 0:
+                res = self._load(context)
+            return res
         except Exception as e:                                  # noqa: BLE001
             import traceback
             traceback.print_exc()
             self.report({"ERROR"}, f"the preview could not be loaded: {e}")
             return {"CANCELLED"}
         finally:
-            shutil.rmtree(self._outdir, ignore_errors=True)
+            # Kept on success: the density slider rebuilds from the volume in it.
+            if res != {"FINISHED"}:
+                _drop_preview_dir(self._outdir)
 
     def _on_stopped(self):
-        import shutil
-        if self._outdir:
-            shutil.rmtree(self._outdir, ignore_errors=True)
+        _drop_preview_dir(self._outdir)
 
     def _load(self, context):
         p = context.scene.dental9
@@ -1455,6 +1463,9 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
             return {"CANCELLED"}
         # One preview and one box per scene: a new preview replaces both, the
         # old box belongs to the old scan.
+        for old in (p.preview_obj, bpy.data.objects.get(PREVIEW_NAME)):
+            if old is not None:
+                _drop_preview_dir(old.get("odentai_preview_dir"))
         _remove_object(p.crop_box)
         _remove_object(p.preview_obj)
         for name in (BOX_NAME, PREVIEW_NAME):
@@ -1470,9 +1481,14 @@ class DENTAL9_OT_preview(_WorkerRun, Operator):
         prev.data.materials.append(_material(f"{BRAND_SHORT}_preview", "#B8B2A6", 0.6, 0.55))
         prev.hide_select = True          # clicks go to the handles, not the bone
         prev["odentai_source"] = self._src
+        prev["odentai_preview_dir"] = self._outdir
+        prev["odentai_density"] = 50.0
         _move_to(prev, _region_collection(context.scene))
 
         p.preview_obj, p.use_crop = prev, True
+        # A new scan starts from its own automatic threshold. Set after the
+        # object's own value, so the update callback finds nothing to rebuild.
+        p.preview_density = 50.0
         box = _fit_box(p)
         _frame_box(context, box)
         self.report({"INFO"}, "bone preview ready: drag the arrows to shrink the "
@@ -1515,6 +1531,153 @@ def _frame_box(context, box) -> None:
         pass
 
 
+# --- Preview density ---------------------------------------------------------
+#
+# Asked for from outside testing (2026-10-11): on one scan the automatic
+# threshold landed in soft tissue and the preview showed skin, hiding the
+# jaws. The slider rebuilds the surface at another density from the 1 mm
+# volume the worker keeps in the preview folder — about 0.3 s, no scan read.
+
+# Preview folders made in this session: kept while their preview lives, removed
+# with it and on quit.
+_PREVIEW_DIRS = set()
+# The rebuild in flight: (process, density, folder, object name). One at a time.
+_DENSITY_JOB = None
+_DENSITY_LAST_CHANGE = 0.0
+_DENSITY_STATUS = ""                  # under the slider; empty when idle
+# A slider sends a value per mouse move: wait for it to settle before a rebuild.
+DENSITY_SETTLE_S = 0.3
+
+
+def _drop_preview_dir(path) -> None:
+    import shutil
+    if path:
+        shutil.rmtree(path, ignore_errors=True)
+        _PREVIEW_DIRS.discard(path)
+
+
+def _drop_all_preview_dirs() -> None:
+    for d in list(_PREVIEW_DIRS):
+        _drop_preview_dir(d)
+
+
+atexit.register(_drop_all_preview_dirs)
+
+
+def _preview_dir(prev) -> str:
+    """The folder a density rebuild needs, or "" when it is gone (a .blend
+    reopened later: temp folders do not outlive the session)."""
+    d = prev.get("odentai_preview_dir", "") if prev else ""
+    return d if d and os.path.isfile(os.path.join(d, "preview.json")) else ""
+
+
+def _density_changed() -> None:
+    """The property's update callback. It only takes note and wakes a timer:
+    running a process or replacing a mesh belongs outside the UI callback."""
+    global _DENSITY_LAST_CHANGE
+    _DENSITY_LAST_CHANGE = time.time()
+    if not bpy.app.timers.is_registered(_density_tick):
+        bpy.app.timers.register(_density_tick, first_interval=DENSITY_SETTLE_S)
+
+
+def _read_stl(path):
+    """Binary STL into welded vertices and triangles, with numpy (Blender's
+    own). The import operators need a UI context a timer does not have."""
+    import numpy as np
+    with open(path, "rb") as f:
+        data = f.read()
+    n = int.from_bytes(data[80:84], "little")
+    rec = np.frombuffer(data, offset=84, count=n, dtype=np.dtype(
+        [("normal", "<f4", 3), ("v", "<f4", (3, 3)), ("attr", "<u2")]))
+    corners = rec["v"].reshape(-1, 3)
+    verts, idx = np.unique(corners, axis=0, return_inverse=True)
+    return verts, idx.reshape(-1, 3)
+
+
+def _swap_preview_mesh(obj, stl: str) -> None:
+    """New geometry in the same object: the box, its pointer and the material
+    stay as they are."""
+    verts, faces = _read_stl(stl)
+    me = bpy.data.meshes.new(obj.data.name)
+    me.from_pydata(verts.tolist(), [], faces.tolist())
+    me.update()
+    old = obj.data
+    for m in old.materials:
+        me.materials.append(m)
+    obj.data = me
+    if old.users == 0:
+        bpy.data.meshes.remove(old)
+
+
+def _density_tick():
+    """Timer: start a rebuild once the slider settles, load it when it is done.
+    Returns the delay to the next tick, None to stop."""
+    global _DENSITY_JOB, _DENSITY_STATUS
+    try:
+        context = bpy.context
+        scene = context.scene
+        p = scene.dental9
+    except Exception:                                       # noqa: BLE001
+        return None
+    if _DENSITY_JOB is not None:
+        proc, dens, folder, name = _DENSITY_JOB
+        if proc.poll() is None:
+            return 0.1
+        _DENSITY_JOB = None
+        out = proc.stdout.read() if proc.stdout else ""
+        prev = bpy.data.objects.get(name)
+        stl = os.path.join(folder, "preview.stl")
+        if proc.returncode == 0 and prev is not None and os.path.isfile(stl):
+            try:
+                _swap_preview_mesh(prev, stl)
+                prev["odentai_density"] = dens
+                _DENSITY_STATUS = ""
+            except Exception as e:                          # noqa: BLE001
+                _DENSITY_STATUS = f"could not load the preview: {e}"
+        else:
+            # The ERROR line is what the user sees; the rest goes to the console.
+            print(out)
+            err = [l for l in out.splitlines() if l.startswith("ERROR")]
+            _DENSITY_STATUS = err[-1] if err else "the preview could not be rebuilt"
+        _redraw_panels(context)
+
+    prev = _live(p.preview_obj, scene)
+    folder = _preview_dir(prev)
+    if not folder:
+        return None
+    want = round(float(p.preview_density), 1)
+    if abs(float(prev.get("odentai_density", 50.0)) - want) < 0.05:
+        return None                                         # up to date
+    wait = DENSITY_SETTLE_S - (time.time() - _DENSITY_LAST_CHANGE)
+    if wait > 0:
+        return wait                                         # still moving
+    exe = _exe()
+    flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    try:
+        proc = subprocess.Popen(
+            [exe, "-o", folder, "--preview-rebuild", "--density", f"{want:g}"],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8",
+            errors="replace", creationflags=flags)
+    except OSError as e:
+        _DENSITY_STATUS = f"could not start the engine: {e}"
+        _redraw_panels(context)
+        return None
+    _DENSITY_JOB = (proc, want, folder, prev.name)
+    _DENSITY_STATUS = "rebuilding the preview…"
+    _redraw_panels(context)
+    return 0.1
+
+
+class DENTAL9_OT_density_auto(Operator):
+    bl_idname = "dental9.density_auto"
+    bl_label = "Automatic density"
+    bl_description = "Back to the density picked for this scan automatically (50%)"
+
+    def execute(self, context):
+        context.scene.dental9.preview_density = 50.0
+        return {"FINISHED"}
+
+
 class DENTAL9_OT_remove_preview(Operator):
     bl_idname = "dental9.remove_preview"
     bl_label = "Remove preview and box"
@@ -1522,6 +1685,8 @@ class DENTAL9_OT_remove_preview(Operator):
 
     def execute(self, context):
         p = context.scene.dental9
+        if p.preview_obj is not None:
+            _drop_preview_dir(p.preview_obj.get("odentai_preview_dir"))
         _remove_object(p.crop_box)
         _remove_object(p.preview_obj)
         p.use_crop = False
@@ -1865,6 +2030,16 @@ def _draw_region(layout, context, p) -> None:
         row.operator("dental9.fit_box", text="", icon="SHADING_BBOX")
         row.operator("dental9.remove_preview", text="", icon="TRASH")
     box.operator("dental9.preview", icon="MESH_CUBE")
+    if prev:
+        row = box.row(align=True)
+        row.enabled = bool(_preview_dir(prev))
+        row.prop(p, "preview_density", slider=True)
+        row.operator("dental9.density_auto", text="", icon="LOOP_BACK")
+        if not row.enabled:
+            box.label(text="press Bone preview again to change density", icon="INFO")
+        elif _DENSITY_STATUS:
+            box.label(text=_DENSITY_STATUS,
+                      icon="SORTTIME" if _DENSITY_JOB else "ERROR")
     if not cbox:
         box.label(text="whole scan", icon="INFO")
         return
@@ -2009,6 +2184,7 @@ class DENTAL9_PT_about(Panel):
 # bl_parent_id at registration time.
 CLASSES_RNA = (Dental9Prefs, Dental9Props, DENTAL9_OT_segment, DENTAL9_OT_stop,
                DENTAL9_OT_preview, DENTAL9_OT_remove_preview, DENTAL9_OT_open_log,
+               DENTAL9_OT_density_auto,
                DENTAL9_OT_fit_box, DENTAL9_OT_toggle_region, DENTAL9_GGT_crop_box,
                DENTAL9_OT_diagnose, DENTAL9_OT_pick_path, DENTAL9_OT_select_all,
                DENTAL9_PT_panel, DENTAL9_PT_about)
@@ -2036,6 +2212,8 @@ def register():
 
 def unregister():
     _kill_running()
+    if bpy.app.timers.is_registered(_density_tick):
+        bpy.app.timers.unregister(_density_tick)
     _remove_draw_handlers()
     del bpy.types.Scene.dental9
     for c in reversed(CLASSES_RNA):
