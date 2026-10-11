@@ -93,9 +93,13 @@ def rebuild_preview(outdir: str, density: float,
     t0 = time.time()
     # The json is read and written by Python, which takes any path; only the
     # native reader and writer go through winpath.
+    src = os.path.join(outdir, VOLUME_FILE)
+    if not (os.path.isfile(src) and os.path.isfile(os.path.join(outdir, "preview.json"))):
+        # The temp folder was cleaned up under us: say what to do, not what failed.
+        raise RuntimeError("the preview data is gone: press Bone preview again")
     with open(os.path.join(outdir, "preview.json"), encoding="utf-8") as f:
         info = json.load(f)
-    vol_path, cleanup_in = _winpath.readable(os.path.join(outdir, VOLUME_FILE))
+    vol_path, cleanup_in = _winpath.readable(src)
     try:
         grid = sitk.ReadImage(vol_path)
     finally:
