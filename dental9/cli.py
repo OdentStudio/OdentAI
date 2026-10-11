@@ -73,6 +73,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--preview", action="store_true",
                    help="no network: a quick bone surface by threshold "
                         "(preview.stl + preview.json in -o), to draw a crop box on")
+    p.add_argument("--density", type=float, default=50.0,
+                   help="preview only: 0..100 on the scan's own scale; 50 is the "
+                        "automatic bone threshold, lower shows soft tissue, higher "
+                        "only the densest bone and enamel")
+    p.add_argument("--preview-rebuild", action="store_true",
+                   help="rebuild preview.stl in -o at another --density from the "
+                        "volume a previous --preview kept there; no scan is read")
     p.add_argument("--threads", type=int, default=0)
     p.add_argument("--providers", action="store_true",
                    help="list the onnxruntime providers and exit")
@@ -116,6 +123,18 @@ def main(argv=None) -> int:
         # the CPU" without parsing the text.
         return 0 if not any(x["level"] == "bad" for x in rep["advice"]) else 3
 
+    if a.preview_rebuild:
+        if not a.out:
+            print("-o with a previous preview is required", file=sys.stderr)
+            return 2
+        from .preview import rebuild_preview
+        try:
+            rebuild_preview(a.out, a.density)
+        except Exception as e:
+            _report_error(e)
+            return 1
+        return 0
+
     # checked by hand rather than required=True: otherwise --providers, which
     # needs neither a scan nor an output folder, would demand both
     if not a.input or not a.out:
@@ -131,7 +150,7 @@ def main(argv=None) -> int:
     if a.preview:
         from .preview import make_preview
         try:
-            make_preview(a.input, a.out)
+            make_preview(a.input, a.out, density=a.density)
         except Exception as e:
             _report_error(e)
             return 1

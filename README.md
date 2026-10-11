@@ -171,6 +171,21 @@ crops anything: without a box in the scene the whole scan is computed.
 Command line: `dental9 <scan> -o <folder> --preview` → `preview.stl` +
 `preview.json` (frame bounds, threshold).
 
+**Density** (since 2026-10-11, asked for from outside testing: on one scan
+the automatic threshold landed in soft tissue and the preview showed skin
+over the jaws). A slider under Bone preview, 0–100% on the scan's own
+scale: 50% is the Otsu threshold above, 0% the air / soft-tissue boundary,
+100% the 99.5th percentile — relative, because CBCT is not calibrated and
+one HU number means bone on one scanner and soft tissue on another. The
+preview keeps its smoothed 1 mm grid (`preview_volume.mha`, ~2 MB) in its
+temp folder, and `dental9 -o <folder> --preview-rebuild --density N`
+rebuilds the surface from it without reading the scan: 0.3 s per step
+including the process start. The add-on waits for the slider to settle
+(0.3 s), runs that in the background and swaps the mesh inside the same
+object, so the box stays where the user put it. The folder lives as long as
+its preview and is removed with it or on quit; a .blend reopened later asks
+for Bone preview again before the slider works.
+
 The box is deliberately **not** a child of the preview: Blender draws a
 dashed relationship line from a child to its parent, right across the box.
 The box is read in the preview's frame, or in world space when there is no
