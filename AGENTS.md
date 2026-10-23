@@ -101,6 +101,19 @@ Anything the user must do or read to install goes into
 
 ## Rules
 
+**No doctor and no patient data. Ever.** Nothing that comes from a real
+clinic goes into this repository, a commit message, a branch, a release text
+or anything sent to an external service: no scans, no labels, no STL, no
+screenshots, no logs, no per-case tables — and no paths, because clinic
+folders are named after patients (surname, first name, dates, planned teeth,
+post-op) and after doctors. Experiment logs live outside the repository;
+reports name scans "A", "B"… only. CI uses synthetic volumes only.
+`scripts/check_no_patient_data.py` runs from the git hooks (`pre-commit`,
+`pre-push`); a hit means remove it, never `--no-verify`. Why: on 2026-10-06
+run logs with clinic paths went into this public repository, two release tags
+and a stranger's fork; the cleanup took a history rewrite and a GitHub
+Support request.
+
 **Language.** Everything the user sees (UI, log, errors, tooltips) is English:
 the add-on goes to clinics. Comments, docstrings and all documentation are
 English too. Comments follow the surrounding code: they explain **why**, often
