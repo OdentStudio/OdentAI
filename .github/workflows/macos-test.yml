@@ -54,10 +54,30 @@ jobs:
         run: python scripts/smoke_test.py dist/dental9/dental9 models/dental9.onnx
 
       - name: Hardware check
-        run: ./dist/dental9/dental9 --diagnose -m models/dental9.onnx || true
+        run: ./dist/dental9/dental9 --diagnose -m models/dental9.onnx 2>&1 | tee diagnose.txt || true
 
       - name: CPU against CoreML (time, label agreement)
-        run: python scripts/bench_devices.py dist/dental9/dental9 models/dental9.onnx
+        # Not fatal: the zip is wanted for testing on a real Mac either way.
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python scripts/bench_devices.py dist/dental9/dental9 models/dental9.onnx 2>&1 | tee bench.txt
+
+      # Job logs need a login even on a public repository; annotations do not.
+      # So the numbers are published as annotations, one per report, readable
+      # through the API by anyone (and by the session that set this up).
+      - name: Results as annotations
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          for f, title in (("diagnose.txt", "hardware check"), ("bench.txt", "CPU vs CoreML")):
+              if not os.path.isfile(f):
+                  continue
+              text = "".join(open(f, encoding="utf-8", errors="replace").readlines()[-60:])
+              text = text.replace("%", "%25").replace(chr(13), "").replace(chr(10), "%0A")
+              print(f"::notice title={title}::{text}")
+          PY
 
       - name: Pack
         run: |
