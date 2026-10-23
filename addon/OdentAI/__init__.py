@@ -338,6 +338,21 @@ def _ensure_executable(path: str) -> None:
             os.chmod(path, 0o755)
         except OSError:
             pass
+    if sys.platform == "darwin":
+        _unquarantine(os.path.dirname(path))
+
+
+def _unquarantine(folder: str) -> None:
+    """macOS marks downloaded files and blocks an unsigned program that carries
+    the mark ("cannot be opened because the developer cannot be verified").
+    Blender's own zip install does not copy the mark, a zip unpacked in Finder
+    does — so it is removed from the engine's folder, ours to remove. Best
+    effort: a failure here shows up as the real error on launch."""
+    try:
+        subprocess.run(["xattr", "-dr", "com.apple.quarantine", folder],
+                       capture_output=True, timeout=60)
+    except Exception:                                       # noqa: BLE001
+        pass
 
 
 # What the last segmentation in this session ran on, for the preferences.
@@ -385,6 +400,8 @@ def _prefs(context):
 # value saved on the other platform is not misread as a different device.
 _GPU_ITEM = (("dml", "DirectML (GPU)", "Any graphics card: NVIDIA, AMD or Intel", 1)
              if sys.platform == "win32" else
+             ("coreml", "CoreML (Apple GPU)", "Apple silicon graphics and Neural Engine", 4)
+             if sys.platform == "darwin" else
              ("cuda", "CUDA (GPU)", "NVIDIA graphics card", 2))
 _DEVICE_ITEMS = [("auto", "Automatic", "Use the graphics card if it works, "
                   "otherwise the CPU", 0),

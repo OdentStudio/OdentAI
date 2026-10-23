@@ -1,0 +1,75 @@
+# Experimental macOS (Apple silicon) build. Runs on a push to the macos-build
+# branch (a manual "Run workflow" button needs the file on the default branch,
+# and this one stays off main until the build is proven). It does not touch
+# releases: the zip goes up as a workflow artifact (Summary page of the run)
+# for testing on a real Mac.
+#
+# What it answers before macOS joins release.yml: does the bundle build and
+# run, does CoreML take this network, how much faster than the CPU, and do the
+# two give the same labels (scripts/bench_devices.py, a synthetic phantom —
+# the runner has no patient data).
+name: macOS test build
+
+on:
+  push:
+    branches: [macos-build]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MODELS_TAG: models-v1
+  PYTHON: "3.11"
+  ORT: "1.24.4"
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: macos-14          # Apple silicon (arm64)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON }}
+
+      - name: Weights
+        run: |
+          gh release download "$MODELS_TAG" -D models
+          grep '  models/' SHA256.txt | tr -d '\r' | shasum -a 256 -c -
+
+      - name: Dependencies
+        run: |
+          python -m pip install -q --upgrade pip
+          # Plain onnxruntime: on macOS it carries the CoreML provider itself.
+          python -m pip install -q -r requirements-deploy.txt pyinstaller "onnxruntime==$ORT"
+          python -c "import onnxruntime as o, platform; print(o.__version__, platform.machine(), o.get_available_providers())"
+
+      - name: Build the worker
+        run: python -m PyInstaller --noconfirm --distpath dist --workpath build dental9.spec
+
+      - name: Smoke test (CPU, synthetic scan)
+        run: python scripts/smoke_test.py dist/dental9/dental9 models/dental9.onnx
+
+      - name: Hardware check
+        run: ./dist/dental9/dental9 --diagnose -m models/dental9.onnx || true
+
+      - name: CPU against CoreML (time, label agreement)
+        run: python scripts/bench_devices.py dist/dental9/dental9 models/dental9.onnx
+
+      - name: Pack
+        run: |
+          rm -rf build addon/OdentAI/__pycache__
+          mkdir -p release
+          python scripts/pack_addon.py --model models/dental9.onnx \
+            --teeth-model models/teeth_fdi.onnx --out release/OdentAI-macos-test.zip
+          ls -la release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OdentAI-macos-test
+          path: release/OdentAI-macos-test.zip
+          retention-days: 14
+          compression-level: 0     # already a zip

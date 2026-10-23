@@ -36,18 +36,28 @@ def pick_providers(device: str = "auto") -> List[str]:
     have = available_providers()
     if device == "cpu":
         return ["CPUExecutionProvider"]
-    order = {"auto": ["DmlExecutionProvider", "CUDAExecutionProvider"],
+    order = {"auto": ["DmlExecutionProvider", "CUDAExecutionProvider",
+                      "CoreMLExecutionProvider"],
              "dml": ["DmlExecutionProvider"],
-             "cuda": ["CUDAExecutionProvider"]}[device]
+             "cuda": ["CUDAExecutionProvider"],
+             "coreml": ["CoreMLExecutionProvider"]}[device]
     picked = [p for p in order if p in have]
     if not picked and device != "auto":
         # Each build carries one GPU provider (DirectML on Windows, CUDA on
         # Linux): say what to choose instead of listing provider names.
-        name = {"dml": "DirectML", "cuda": "CUDA"}[device]
+        name = {"dml": "DirectML", "cuda": "CUDA", "coreml": "CoreML"}[device]
         raise RuntimeError(
             f"{name} is not part of this build; set Compute on to Automatic "
             f"(available here: {have})")
     return picked + ["CPUExecutionProvider"]
+
+
+# macOS (Apple silicon, experimental 2026-10-23): CoreML runs on the GPU and
+# the Neural Engine. MLProgram is the format that takes fp16 weights and 3D
+# convolutions; whatever CoreML cannot take falls back to the CPU provider
+# inside the same session. The tile is constant within a scan except at the
+# edges, hence no static-shape requirement.
+COREML_OPTIONS = {"ModelFormat": "MLProgram", "MLComputeUnits": "ALL"}
 
 
 def make_session(path: str, device: str = "auto", threads: int = 0):
@@ -68,7 +78,9 @@ def make_session(path: str, device: str = "auto", threads: int = 0):
     from . import winpath
     safe, cleanup = winpath.readable(path)
     try:
-        sess = ort.InferenceSession(safe, opts, providers=pick_providers(device))
+        sess = ort.InferenceSession(safe, opts, providers=[
+            (p, COREML_OPTIONS) if p == "CoreMLExecutionProvider" else p
+            for p in pick_providers(device)])
     finally:
         cleanup()
     return sess
@@ -78,6 +90,7 @@ def session_device(sess) -> str:
     p = sess.get_providers()[0]
     return {"DmlExecutionProvider": "DirectML (GPU)",
             "CUDAExecutionProvider": "CUDA (GPU)",
+            "CoreMLExecutionProvider": "CoreML (Apple GPU)",
             "CPUExecutionProvider": "CPU"}.get(p, p)
 
 

@@ -192,6 +192,11 @@ def _advice(rep: dict) -> list:
                 out.append((BAD, "This build has no DirectML. A build with "
                                  "onnxruntime-directml is needed — tell the "
                                  "developer."))
+        elif rep["platform"]["system"] == "Darwin":
+            out.append((WARN, "macOS: the graphics part of Apple silicon is used "
+                              "through CoreML, nothing to install. If it does not "
+                              "come up, update macOS; an Intel Mac is not "
+                              "supported by this build."))
         else:
             out.append((WARN, "Linux: CUDA and cuDNN are bundled, so the only thing "
                               "needed from the system is an NVIDIA driver that "

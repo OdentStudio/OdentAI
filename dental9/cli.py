@@ -35,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-c", "--classes", nargs="+", default=None,
                    metavar="CLASS", help="which classes to compute; all by default. "
                    + "Available: " + ", ".join(k.key for k in CLASSES))
-    p.add_argument("--device", choices=("auto", "dml", "cuda", "cpu"), default="auto",
+    p.add_argument("--device", choices=("auto", "dml", "cuda", "coreml", "cpu"), default="auto",
                    help="auto = the GPU if onnxruntime can see one")
     p.add_argument("--tile", type=int, nargs=3, default=None,
                    metavar=("Z", "Y", "X"), help="tile size; the training patch by default")
