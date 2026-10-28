@@ -2,7 +2,7 @@
 
 Instructions for AI coding agents (Claude Code, Codex, Cursor and the like)
 working in this repository. How the pipeline behaves is in
-[README.md](README.md); this file is about working on the code without
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md); this file is about working on the code without
 breaking a delivery.
 
 ## What this is

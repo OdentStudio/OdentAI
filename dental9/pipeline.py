@@ -343,7 +343,7 @@ def _refine_canal(vol: np.ndarray, labels: np.ndarray, sess, cfg: dict,
     the fine pass restored that canal whole, 105 -> 305 mm3. On the 70 labelled
     held-out cases neither pass ever runs — the trigger does not fire there —
     so the change costs nothing measurable: the two are byte-identical on that
-    set (docs/canal_fine_eval/REPORT_dice_ru.md).
+    set (measured 2026-10-07).
 
     Neither pass may be forced on every scan. Measured against manual labels on
     those 70: forcing fine costs 0.0075 canal Dice, forcing match 0.0039.
