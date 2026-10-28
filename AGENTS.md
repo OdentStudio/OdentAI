@@ -109,10 +109,10 @@ folders are named after patients (surname, first name, dates, planned teeth,
 post-op) and after doctors. Experiment logs live outside the repository;
 reports name scans "A", "B"… only. CI uses synthetic volumes only.
 `scripts/check_no_patient_data.py` runs from the git hooks (`pre-commit`,
-`pre-push`); a hit means remove it, never `--no-verify`. Why: on 2026-10-06
-run logs with clinic paths went into this public repository, two release tags
-and a stranger's fork; the cleanup took a history rewrite and a GitHub
-Support request.
+`pre-push`); a hit means remove it, never `--no-verify`. Before every commit,
+look at what is staged: anything that came from a run on a real scan stays
+out. This repository is public, and whatever is pushed to it — a path in a
+log, a name in a comment — can be copied by anyone and cannot be taken back.
 
 **Language.** Everything the user sees (UI, log, errors, tooltips) is English:
 the add-on goes to clinics. Comments, docstrings and all documentation are

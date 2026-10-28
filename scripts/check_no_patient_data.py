@@ -4,9 +4,8 @@
 No doctor and no patient data in this repository, ever: not a scan, not a
 path, not a log line, not a name. Clinic folders are named after patients
 (surname, first name, dates, planned teeth, post-op), so even a file path
-leaks them. On 2026-10-06..23 run logs with such paths went into this public
-repository, then into two release tags and a stranger's fork; the cleanup
-took a history rewrite and a GitHub Support request.
+is personal health data. The repository is public: what gets pushed can be
+copied by anyone and cannot be taken back, so it is stopped before the commit.
 
 This file holds no names on purpose — it looks for the shapes such data
 takes. A hit means: remove it, do not bypass the hook.
