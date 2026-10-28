@@ -1,5 +1,7 @@
 # OdentAI Segment
 
+![OdentAI Segment: nine anatomical structures from one CBCT scan](docs/OdentAI.jpg)
+
 **CBCT scan in, 3D models out — inside Blender.**
 
 OdentAI Segment is a free Blender add-on that turns a dental CBCT scan (DICOM)
