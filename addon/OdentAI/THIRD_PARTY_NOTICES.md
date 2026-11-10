@@ -18,6 +18,9 @@ terms.
 - **ToothFairy2 / ToothFairy3** — University of Modena and Reggio Emilia,
   licence CC BY-NC-SA 4.0. https://ditto.ing.unimore.it
 
+  The ToothFairy3 logo in the model licence dialog belongs to the dataset's
+  authors and is shown only to acknowledge the data source.
+
   When you use the weights or results obtained with them, acknowledge
   ToothFairy3 as the data source and cite:
 

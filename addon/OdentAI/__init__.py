@@ -248,6 +248,11 @@ def _logo_pixels() -> int:
     return max(32, int(round(20 * LOGO_SCALE * _ui_scale())) - 8)
 
 
+def _tf_pixels() -> int:
+    """Screen pixels of the ToothFairy3 card in the licence dialog."""
+    return max(32, int(round(20 * TF_SCALE * _ui_scale())) - 8)
+
+
 def _load_icons() -> None:
     global _ICONS
     import bpy.utils.previews
@@ -264,6 +269,7 @@ def _load_icons() -> None:
     # preferences needs the add-on re-enabled to pick up the new size.
     _load_exact("logo_tile", os.path.join(d, "logo_tile.png"), _logo_pixels())
     _load_exact("rocket", os.path.join(d, "rocket.png"), _button_icon_pixels())
+    _load_exact("toothfairy3", os.path.join(d, "toothfairy3.png"), _tf_pixels())
 
 
 def _load_exact(name: str, path: str, size: int) -> None:
@@ -373,21 +379,18 @@ WEIGHTS_FILES = {
     "teeth_fdi.onnx": "89287ff45e41348e51a9a1660459fb2b20dd0934e99eeb9994050f0b3a6906f0",
     "teeth_fdi.json": "bd498d06bf30e34f610aba41026d07ac4b752957e948ebe3910db0bd435e154d",
 }
+# Where the papers to cite are listed in full (the licence file of the weights).
+WEIGHTS_CITE_URL = "https://github.com/OdentStudio/OdentAI-weights/blob/main/LICENSE.md"
+# The licence dialog: (icon, text, alert). Short on purpose - a wall of text
+# is not read; the three buttons under it lead to the full texts.
 WEIGHTS_TERMS = [
-    "The segmentation model is a separate download (about %d MB)." % WEIGHTS_MB,
-    "",
-    "Licence of the model weights: Creative Commons",
-    "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).",
-    "They may NOT be used for commercial purposes.",
-    "",
-    "The weights were trained on the ToothFairy2 and ToothFairy3 datasets",
-    "(University of Modena and Reggio Emilia, ditto.ing.unimore.it) and on",
-    "DentVoxel. If you use the results in your work, acknowledge ToothFairy3",
-    "as the data source and cite its papers - they are listed in",
-    "About > Third-party notices and on the Ditto platform.",
-    "",
-    "By continuing you accept these terms.",
+    ("IMPORT", "Separate download (~%d MB)." % WEIGHTS_MB, False),
+    ("INFO", "Licence: %s \u2014 non-commercial use only." % WEIGHTS_LICENSE, False),
+    ("BOOKMARKS", "Data: ToothFairy3 (UniMoRe) \u2014 please credit and cite.", False),
+    ("ERROR", "Not a medical device \u2014 verify all results.", True),
 ]
+# The ToothFairy3 card in that dialog, in row units (see _tf_pixels).
+TF_SCALE = 13.0
 WEIGHTS_NOTICE = ("Model licence: CC BY-NC-SA 4.0, non-commercial.",
                   "Data: ToothFairy3 (ditto.ing.unimore.it)")
 
@@ -573,20 +576,34 @@ class DENTAL9_OT_weights_get(Operator):
         wm = context.window_manager
         try:                                                    # Blender 4.1+
             return wm.invoke_props_dialog(
-                self, width=480, title="Model licence",
+                self, width=420, title="Model licence",
                 confirm_text="Accept and choose the file" if self.from_file
                 else "Accept and download")
         except TypeError:
-            return wm.invoke_props_dialog(self, width=480)
+            return wm.invoke_props_dialog(self, width=420)
 
     def draw(self, context):
-        col = self.layout.column(align=True)
-        col.scale_y = 0.85
-        for line in WEIGHTS_TERMS:
-            col.label(text=line)
-        row = self.layout.row(align=True)
-        row.operator("wm.url_open", text="Licence text", icon="URL").url = WEIGHTS_LICENSE_URL
-        row.operator("wm.url_open", text="ToothFairy (Ditto)", icon="URL").url = WEIGHTS_SOURCE_URL
+        layout = self.layout
+        # The logo of the dataset: the weights exist thanks to ToothFairy3 and
+        # its authors ask to be acknowledged wherever the weights are used.
+        # Blender draws a preview as a square, so the card sits in a
+        # transparent square and cannot span the dialog.
+        if _icon("toothfairy3"):
+            r = layout.row()
+            r.alignment = "CENTER"
+            r.template_icon(icon_value=_icon("toothfairy3"), scale=TF_SCALE)
+        col = layout.column()
+        for i, (icon, text, alert) in enumerate(WEIGHTS_TERMS):
+            if i == 0 and self.from_file:
+                text = "Install from a file (OdentAI-weights-1.zip)."
+            r = col.row()
+            r.alert = alert
+            r.label(text=text, icon=icon)
+        layout.separator()
+        row = layout.row(align=True)
+        row.operator("wm.url_open", text="Licence").url = WEIGHTS_LICENSE_URL
+        row.operator("wm.url_open", text="ToothFairy3").url = WEIGHTS_SOURCE_URL
+        row.operator("wm.url_open", text="Citations").url = WEIGHTS_CITE_URL
 
     def execute(self, context):
         if self.from_file:
