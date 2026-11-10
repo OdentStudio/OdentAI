@@ -1,0 +1,10 @@
+# The deployment environment. Torch is left out on purpose: on Windows it
+# drags in one and a half to two gigabytes, and everything needed from it is
+# already in the ONNX graph.
+numpy>=1.24,<3
+SimpleITK>=2.3
+vtk>=9.3
+# The provider for the platform is installed separately; they conflict:
+#   Windows (clinic):    onnxruntime-directml   — any graphics card, no CUDA
+#   Linux (our build):   onnxruntime-gpu        — CUDA
+#   no graphics card:    onnxruntime

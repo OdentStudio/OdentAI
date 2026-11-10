@@ -1,0 +1,17 @@
+# Weights, builds and environments stay out of the repository: hundreds of
+# megabytes, all reproducible (the weights from the checkpoint with
+# scripts/export_onnx.py).
+models/
+dist/
+build/
+.venv/
+__pycache__/
+*.pyc
+_backup_*/
+.venv-linux/
+dist-linux/
+build-linux/
+
+# Logs never go in: a run log carries the path of the scan, and clinic
+# folders are named after patients.
+*.log

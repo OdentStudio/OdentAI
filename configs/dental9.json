@@ -1,0 +1,34 @@
+{
+  "_comment": "Собрано deploy/scripts/export_onnx.py из nnUNet plans. Руками не править.",
+  "model": "dental9.onnx",
+  "dataset": "Dataset003_Dental9",
+  "epoch": 475,
+  "orientation": "LPS",
+  "spacing": 0.3,
+  "train_patch": [
+    160,
+    320,
+    320
+  ],
+  "tile": [
+    160,
+    320,
+    320
+  ],
+  "tile_divisor": [
+    32,
+    64,
+    64
+  ],
+  "overlap": 0.5,
+  "num_classes": 10,
+  "normalization": {
+    "scheme": "CTNormalization",
+    "clip": [
+      -1000.0,
+      3492.0
+    ],
+    "mean": 656.9095458984375,
+    "std": 1074.9185791015625
+  }
+}
