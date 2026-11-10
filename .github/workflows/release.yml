@@ -110,7 +110,12 @@ jobs:
 
       - name: Weights
         run: |
-          gh release download "$WEIGHTS_TAG" -R "$WEIGHTS_REPO" -p "$WEIGHTS_ZIP"
+          # The job's token cannot read another private repository. While
+          # WEIGHTS_REPO is private the build takes the same archive from a
+          # release of this repository (same tag); once both are public that
+          # copy is removed and only the first line ever succeeds. Either way
+          # the files are checked against SHA256.txt below.
+          gh release download "$WEIGHTS_TAG" -R "$WEIGHTS_REPO" -p "$WEIGHTS_ZIP"             || gh release download "$WEIGHTS_TAG" -p "$WEIGHTS_ZIP"
           python -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall('models')" "$WEIGHTS_ZIP"
           rm "$WEIGHTS_ZIP"
           # tr: the Windows runner checks text files out with CRLF.
